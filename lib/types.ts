@@ -13,6 +13,14 @@ export type GamePhase = "lobby" | "question" | "results" | "finished";
 export type TruthOrDareStage = "truth" | "dare" | "everyone" | "play";
 export type TruthOrDareItemType = "truth" | "dare" | "everyone";
 
+export type FoolMeOncePhase =
+  | "truth_entry"
+  | "bluff"
+  | "vote"
+  | "reveal"
+  | "round_scores"
+  | "final_scores";
+
 export type Player = {
   id: string;
   room_id: string;
@@ -24,7 +32,7 @@ export type Player = {
 export type Room = {
   id: string;
   code: string;
-  selected_game: "spicy" | "party" | "truth_or_dare" | null;
+  selected_game: "spicy" | "party" | "truth_or_dare" | "fool_me_once" | null;
   game_started: boolean;
   game_phase: GamePhase;
   current_round: number;
@@ -42,6 +50,11 @@ export type Room = {
   truth_or_dare_current_index: number;
   truth_or_dare_current_item_id: string | null;
   truth_or_dare_reveal_item_ids: string[];
+
+  fool_me_once_phase: FoolMeOncePhase;
+  fool_me_once_round_order: string[];
+  fool_me_once_current_index: number;
+  fool_me_once_current_round_id: string | null;
 };
 
 export type SpicyQuestion = {
@@ -83,5 +96,40 @@ export type TruthOrDareAnswer = {
   item_id: string;
   player_id: string;
   answer: string;
+  created_at?: string;
+};
+
+
+export type FoolMeOncePrompt = {
+  id: string;
+  prompt: string;
+};
+
+export type FoolMeOnceRound = {
+  id: string;
+  room_id: string;
+  round_number: number;
+  subject_player_id: string;
+  prompt_id: string;
+  real_answer: string | null;
+  choice_order: string[];
+  referenced_player_id: string | null;
+  created_at?: string;
+};
+
+export type FoolMeOnceBluff = {
+  id: string;
+  round_id: string;
+  player_id: string;
+  answer: string;
+  created_at?: string;
+};
+
+export type FoolMeOnceVote = {
+  id: string;
+  round_id: string;
+  player_id: string;
+  chosen_kind: "truth" | "bluff";
+  chosen_bluff_id: string | null;
   created_at?: string;
 };

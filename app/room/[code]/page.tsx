@@ -6,10 +6,12 @@ import { Gamepad2, User, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Player } from "@/lib/types";
 
-type AvailableGame = "spicy" | "party" | "truth_or_dare";
+type AvailableGame = "spicy" | "party" | "truth_or_dare" | "fool_me_once";
 
 function getGamePath(game: AvailableGame) {
-  return game === "truth_or_dare" ? "truth-or-dare" : game;
+  if (game === "truth_or_dare") return "truth-or-dare";
+  if (game === "fool_me_once") return "fool-me-once";
+  return game;
 }
 
 export default function RoomPage() {
@@ -64,7 +66,12 @@ export default function RoomPage() {
       if (
         room.game_started &&
         game &&
-        (game === "spicy" || game === "party" || game === "truth_or_dare")
+        (
+          game === "spicy" ||
+          game === "party" ||
+          game === "truth_or_dare" ||
+          game === "fool_me_once"
+        )
       ) {
         router.push(
           `/game/${getGamePath(game)}/${code}?name=${encodeURIComponent(
@@ -142,7 +149,12 @@ export default function RoomPage() {
 
           const game = payload.new.selected_game as AvailableGame | null;
 
-          if (game !== "spicy" && game !== "party" && game !== "truth_or_dare") {
+          if (
+            game !== "spicy" &&
+            game !== "party" &&
+            game !== "truth_or_dare" &&
+            game !== "fool_me_once"
+          ) {
             return;
           }
 

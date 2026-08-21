@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Edit3, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 
-type Game = "spicy" | "party";
+type Game = "spicy" | "party" | "fool_me_once";
 type Question = {
   id: string;
   game: Game;
@@ -23,6 +23,9 @@ const TYPES = {
     ["never_have_i_ever", "Never Have I Ever"],
     ["how_many_shots", "How Many Shots"],
     ["most_likely", "Who Is Most Likely"],
+  ],
+  fool_me_once: [
+    ["personal_prompt", "Personal Prompt"],
   ],
 } as const;
 
@@ -47,6 +50,10 @@ function getDefaultPrompt(game: Game, type: string) {
       case "player_choice":
         return "Who is more likely to...";
     }
+  }
+
+  if (game === "fool_me_once") {
+    return "What is...";
   }
 
   return "";
@@ -269,6 +276,7 @@ function changeType(type: string) {
             >
               <option value="spicy">Spicy</option>
               <option value="party">Party Mode</option>
+              <option value="fool_me_once">Fool Me Once</option>
             </select>
 
             <label className="mt-5 block font-black text-slate-600">Question type</label>
@@ -286,7 +294,11 @@ function changeType(type: string) {
             <textarea
               value={form.prompt}
               onChange={(event) => setForm({ ...form, prompt: event.target.value })}
-              placeholder="Do you think {player} should kiss {player2}?"
+              placeholder={
+                form.game === "fool_me_once"
+                  ? "What is the dumbest purchase you have ever made?"
+                  : "Do you think {player} should kiss {player2}?"
+              }
               rows={5}
               className="mt-2 w-full rounded-2xl bg-white px-4 py-4 font-bold shadow-md outline-none ring-sky-300 focus:ring-4"
             />
@@ -308,9 +320,18 @@ function changeType(type: string) {
               </div>
             )}
 
-            <div className="mt-4 rounded-2xl bg-sky-50 p-4 text-sm font-bold text-sky-700">
-              Placeholders: <code>{"{player}"}</code>, <code>{"{player2}"}</code>, <code>{"{player3}"}</code>, or <code>{"{different player}"}</code>.
-            </div>
+            {form.game === "fool_me_once" ? (
+              <div className="mt-4 rounded-2xl bg-violet-50 p-4 text-sm font-bold text-violet-700">
+                Write Fool Me Once prompts naturally in second person using words like
+                <code className="mx-1">you</code> and
+                <code className="mx-1">your</code>.
+                During bluffing, Uncovered can personalize them with the truth player's name.
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl bg-sky-50 p-4 text-sm font-bold text-sky-700">
+                Placeholders: <code>{"{player}"}</code>, <code>{"{player2}"}</code>, <code>{"{player3}"}</code>, or <code>{"{different player}"}</code>.
+              </div>
+            )}
 
             <button
               type="submit"
@@ -335,6 +356,7 @@ function changeType(type: string) {
                 <option value="all">All games</option>
                 <option value="spicy">Spicy</option>
                 <option value="party">Party Mode</option>
+                <option value="fool_me_once">Fool Me Once</option>
               </select>
             </div>
 
@@ -344,7 +366,12 @@ function changeType(type: string) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <p className="text-xs font-black uppercase tracking-wide text-sky-500">
-                        {question.game} · {question.type.replaceAll("_", " ")}
+                        {question.game === "fool_me_once"
+                          ? "Fool Me Once"
+                          : question.game === "party"
+                            ? "Party Mode"
+                            : "Spicy"}{" "}
+                        · {question.type.replaceAll("_", " ")}
                       </p>
                       <p className="mt-2 font-black text-slate-800">{question.prompt}</p>
                       {question.option_one && (

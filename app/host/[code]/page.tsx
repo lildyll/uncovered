@@ -9,6 +9,7 @@ import {
   Gamepad2,
   PartyPopper,
   Sparkles,
+  Trophy,
   Users,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -22,6 +23,7 @@ import {
   generatePartyTypeOrder,
   PARTY_TOTAL_ROUNDS,
 } from "@/lib/party";
+import { createFoolMeOnceGame } from "@/lib/fool-me-once";
 import type { Player } from "@/lib/types";
 
 const games = [
@@ -43,12 +45,20 @@ const games = [
     description: "Write truths, dares, and questions for the group.",
     icon: Sparkles,
   },
+  {
+    id: "fool_me_once",
+    name: "Fool Me Once",
+    description: "Tell the truth, write convincing bluffs, and fool your friends.",
+    icon: Trophy,
+  },
 ] as const;
 
-type AvailableGame = "spicy" | "party" | "truth_or_dare";
+type AvailableGame = "spicy" | "party" | "truth_or_dare" | "fool_me_once";
 
 function getGamePath(game: AvailableGame) {
-  return game === "truth_or_dare" ? "truth-or-dare" : game;
+  if (game === "truth_or_dare") return "truth-or-dare";
+  if (game === "fool_me_once") return "fool-me-once";
+  return game;
 }
 
 export default function HostPage() {
@@ -224,6 +234,10 @@ export default function HostPage() {
 
         if (startError) throw new Error(startError.message);
       }
+
+      if (selectedGame === "fool_me_once") {
+        await createFoolMeOnceGame(roomId, players);
+      }
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -251,7 +265,12 @@ export default function HostPage() {
           const game = payload.new.selected_game as AvailableGame | null;
 
           if (!payload.new.game_started) return;
-          if (game !== "spicy" && game !== "party" && game !== "truth_or_dare") {
+          if (
+            game !== "spicy" &&
+            game !== "party" &&
+            game !== "truth_or_dare" &&
+            game !== "fool_me_once"
+          ) {
             return;
           }
 
