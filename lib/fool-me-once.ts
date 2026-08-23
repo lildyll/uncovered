@@ -88,8 +88,8 @@ export async function createFoolMeOnceGame(
   }
 
   const shuffledPlayers = shuffleArray(players);
-  //const shuffledPrompts = shuffleArray(prompts).slice(0, players.length);
-  /**/const TEST_PROMPT_ID = "b3a8daf5-3607-4fe3-9386-cc2f4bd5770a";
+  const shuffledPrompts = shuffleArray(prompts).slice(0, players.length);
+  /*const TEST_PROMPT_ID = "b3a8daf5-3607-4fe3-9386-cc2f4bd5770a";
   const testPrompt = prompts.find(
     (prompt) => prompt.id === TEST_PROMPT_ID
   );
@@ -102,7 +102,7 @@ export async function createFoolMeOnceGame(
   const shuffledPrompts = [
     testPrompt,
     ...shuffleArray(otherPrompts),
-  ].slice(0, players.length);/**/
+  ].slice(0, players.length);*/
 
   const rows = shuffledPlayers.map((player, index) => {
     const prompt = shuffledPrompts[index];
