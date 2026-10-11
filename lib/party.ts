@@ -5,7 +5,7 @@ import type {
   Player,
 } from "@/lib/types";
 
-export const PARTY_TOTAL_ROUNDS = 12;
+export const PARTY_TOTAL_ROUNDS = 20;
 
 type GeneratedPartyQuestion = {
   prompt: string;
@@ -118,6 +118,11 @@ export function generatePartyQuestion(
     };
   }
 
+  if (question.type === "kiss_marry_kill") {
+    // The pool is supplied by createNextPartyQuestion, not generated here.
+    return { prompt, type: question.type, optionOne: null, optionTwo: null };
+  }
+
   if (question.type === "most_likely") {
     return {
       prompt,
@@ -200,7 +205,10 @@ export async function createNextPartyQuestion(
   const unusedQuestions = questions.filter(
     (question) =>
       question.type === requiredType &&
-      !usedQuestionIds.includes(question.id)
+      (
+        requiredType === "kiss_marry_kill" ||
+        !usedQuestionIds.includes(question.id)
+      )
   );
 
   if (unusedQuestions.length === 0) {
@@ -221,6 +229,67 @@ export async function createNextPartyQuestion(
     randomQuestion,
     players
   );
+
+  if (requiredType === "kiss_marry_kill") {
+    const { data: pool, error: poolError } = await supabase
+      .from("party_kmk_names")
+      .select("name");
+
+    if (poolError) throw new Error(poolError.message);
+
+    // Get names of players currently in the lobby.
+    const playerNames = [
+      ...new Set(
+        players.map((player) => player.name.trim())
+      ),
+    ].filter(Boolean);
+
+    // Get celebrity names from Supabase.
+    const poolNames = (pool || [])
+      .map((item) => item.name.trim())
+      .filter(Boolean);
+
+    // Combine both pools and remove duplicate names,
+    // ignoring capitalization.
+    const uniqueNames = Array.from(
+      new Map(
+        [...playerNames, ...poolNames].map((name) => [
+          name.toLocaleLowerCase(),
+          name,
+        ])
+      ).values()
+    );
+
+    if (uniqueNames.length < 3) {
+      throw new Error(
+        "Kiss, Marry, Kill requires at least 3 distinct names across players and the name pool."
+      );
+    }
+
+    // Always choose one player from the current lobby.
+    const guaranteedPlayer = shuffleArray(playerNames)[0];
+
+    // Remove the guaranteed player from the remaining choices.
+    const remainingNames = uniqueNames.filter(
+      (name) =>
+        name.toLocaleLowerCase() !==
+        guaranteedPlayer.toLocaleLowerCase()
+    );
+
+    // Randomly select two more names.
+    const additionalNames = shuffleArray(remainingNames).slice(0, 2);
+
+    // Shuffle all three so the lobby player
+    // isn't always in the first position.
+    const finalNames = shuffleArray([
+      guaranteedPlayer,
+      ...additionalNames,
+    ]);
+
+    // Save the three names for every player to see.
+    generated.optionOne = JSON.stringify(finalNames);
+    generated.prompt = "Kiss, Marry, Kill";
+  }
 
   const { error: updateError } = await supabase
     .from("rooms")
@@ -263,6 +332,7 @@ const PARTY_QUESTION_TYPES: PartyQuestionType[] = [
   "never_have_i_ever",
   "how_many_shots",
   "most_likely",
+  "kiss_marry_kill",
 ];
 
 function shuffleArray<T>(items: T[]): T[] {

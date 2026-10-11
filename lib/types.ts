@@ -4,7 +4,8 @@ export type PartyQuestionType =
   | "would_you_rather"
   | "never_have_i_ever"
   | "how_many_shots"
-  | "most_likely";
+  | "most_likely"
+  | "kiss_marry_kill";
 
 export type QuestionType = SpicyQuestionType | PartyQuestionType;
 
@@ -12,6 +13,8 @@ export type GamePhase = "lobby" | "question" | "results" | "finished";
 
 export type TruthOrDareStage = "truth" | "dare" | "everyone" | "play";
 export type TruthOrDareItemType = "truth" | "dare" | "everyone";
+
+export type ParanoiaPhase = "setup" | "turn" | "reveal";
 
 export type FoolMeOncePhase =
   | "truth_entry"
@@ -50,6 +53,14 @@ export type Room = {
   truth_or_dare_current_index: number;
   truth_or_dare_current_item_id: string | null;
   truth_or_dare_reveal_item_ids: string[];
+
+  paranoia_phase: ParanoiaPhase;
+  paranoia_turn_order: string[];
+  paranoia_turn_player_order: string[];
+  paranoia_current_index: number;
+  paranoia_current_question_id: string | null;
+  paranoia_current_player_id: string | null;
+  paranoia_reveal: boolean;
 
   fool_me_once_phase: FoolMeOncePhase;
   fool_me_once_round_order: string[];
@@ -113,7 +124,6 @@ export type FoolMeOnceRound = {
   prompt_id: string;
   real_answer: string | null;
   choice_order: string[];
-  referenced_player_id: string | null;
   created_at?: string;
 };
 
@@ -131,5 +141,13 @@ export type FoolMeOnceVote = {
   player_id: string;
   chosen_kind: "truth" | "bluff";
   chosen_bluff_id: string | null;
+  created_at?: string;
+};
+
+export type ParanoiaQuestion = {
+  id: string;
+  room_id: string;
+  author_player_id: string;
+  question: string;
   created_at?: string;
 };

@@ -76,6 +76,9 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [kmkNames, setKmkNames] = useState<{ id: string; name: string }[]>([]);
+  const [newKmkName, setNewKmkName] = useState("");
+  const [kmkBusy, setKmkBusy] = useState(false);
 
   const filtered = useMemo(
     () =>
@@ -100,6 +103,64 @@ export default function AdminPage() {
     return data;
   }
 
+  async function loadKmkNames() {
+    if (!password) return;
+    try {
+      const response = await fetch("/api/admin/kmk-names", {
+        headers: { "x-admin-password": password },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load names.");
+      setKmkNames(data.names || []);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not load names.");
+    }
+  }
+
+  async function addKmkName(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!password || !newKmkName.trim() || kmkBusy) return;
+    setKmkBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/kmk-names", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-password": password },
+        body: JSON.stringify({ name: newKmkName.trim() }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not add name.");
+      setNewKmkName("");
+      setMessage("Kiss, Marry, Kill name added.");
+      await loadKmkNames();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not add name.");
+    } finally {
+      setKmkBusy(false);
+    }
+  }
+
+  async function deleteKmkName(id: string, name: string) {
+    if (!window.confirm(`Remove ${name} from the name pool?`)) return;
+    setKmkBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/kmk-names", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", "x-admin-password": password },
+        body: JSON.stringify({ id }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not remove name.");
+      setMessage("Name removed.");
+      await loadKmkNames();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not remove name.");
+    } finally {
+      setKmkBusy(false);
+    }
+  }
+
   async function loadQuestions() {
     if (!password) return;
     setLoading(true);
@@ -108,6 +169,7 @@ export default function AdminPage() {
     try {
       const data = await request("GET");
       setQuestions(data.questions);
+      await loadKmkNames();
       sessionStorage.setItem("uncovered-admin-password", password);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not load questions.");
@@ -400,6 +462,39 @@ function changeType(type: string) {
             </div>
           </section>
         </div>
+
+        <section className="mt-6 rounded-[36px] border border-white/50 bg-white/70 p-6 shadow-2xl backdrop-blur-md">
+          <h2 className="text-2xl font-black text-slate-800">Kiss, Marry, Kill — Name Pool</h2>
+          <p className="mt-2 font-medium text-slate-600">
+            Add extra names here. The game also automatically includes everyone in the current lobby.
+          </p>
+          <form onSubmit={addKmkName} className="mt-5 flex flex-col gap-3 sm:flex-row">
+            <input
+              value={newKmkName}
+              onChange={(event) => setNewKmkName(event.target.value)}
+              placeholder="Celebrity, character, or any name"
+              maxLength={100}
+              className="min-w-0 flex-1 rounded-2xl bg-white px-5 py-4 font-bold text-slate-800 shadow-md outline-none ring-sky-300 focus:ring-4"
+            />
+            <button type="submit" disabled={!password || !newKmkName.trim() || kmkBusy}
+              className="rounded-2xl bg-gradient-to-r from-pink-400 to-rose-500 px-6 py-4 font-black text-white shadow-lg disabled:opacity-50">
+              <span className="flex items-center justify-center gap-2"><Plus className="h-5 w-5" />Add Name</span>
+            </button>
+          </form>
+          <p className="mt-4 text-sm font-bold text-sky-700">{kmkNames.length} names in the pool</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {kmkNames.map((item) => (
+              <div key={item.id} className="flex min-w-0 items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+                <span className="min-w-0 break-words font-bold text-slate-700">{item.name}</span>
+                <button type="button" aria-label={`Delete ${item.name}`} disabled={kmkBusy}
+                  onClick={() => deleteKmkName(item.id, item.name)}
+                  className="shrink-0 rounded-xl bg-red-100 p-3 text-red-600 disabled:opacity-50">
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {message && <p className="mt-5 text-center font-black text-emerald-700">{message}</p>}
         {error && <p className="mt-5 text-center font-black text-red-600">{error}</p>}

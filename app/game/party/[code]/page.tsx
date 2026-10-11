@@ -50,6 +50,11 @@ type RankingResult = {
   averagePlacement: number;
 };
 
+type KmkResult = {
+  category: "Kiss" | "Marry" | "Kill";
+  results: { name: string; count: number; percent: number; voters: string[] }[];
+};
+
 type RankingReveal = {
   voter: string;
   ranking: string[];
@@ -140,6 +145,8 @@ export default function PartyGamePage() {
     useState(0);
   const [shotVotes, setShotVotes] =
     useState<ShotVote[]>([]);
+  const [kmkResults, setKmkResults] = useState<KmkResult[]>([]);
+  const [kmkRanking, setKmkRanking] = useState<string[]>([]);
   const [rankingResults, setRankingResults] =
     useState<RankingResult[]>([]);
   const [rankingReveals, setRankingReveals] =
@@ -240,6 +247,7 @@ export default function PartyGamePage() {
       setShotVotes([]);
       setRankingResults([]);
       setRankingReveals([]);
+      setKmkResults([]);
 
       if (
         currentRoom.current_question_type ===
@@ -334,6 +342,31 @@ export default function PartyGamePage() {
 
         setShotAverage(average);
         setShotVotes(parsedVotes);
+        return;
+      }
+
+      if (currentRoom.current_question_type === "kiss_marry_kill") {
+        let options: string[] = [];
+        try { options = JSON.parse(currentRoom.option_one || "[]"); } catch {}
+        if (options.length !== 3) {
+          setError("Kiss, Marry, Kill is missing its three names.");
+          return;
+        }
+        const categories = ["Kiss", "Marry", "Kill"] as const;
+        setKmkResults(categories.map((category, index) => {
+          const results = options.map((name) => {
+            const voters = answerRows.filter((row) => {
+              try {
+                const choice = JSON.parse(row.answer);
+                return Array.isArray(choice) && choice.length === 3 && choice[index] === name;
+              } catch { return false; }
+            }).map((row) => names.get(row.player_id) || "Player");
+            return { name, count: voters.length,
+              percent: total ? Math.round(voters.length * 100 / total) : 0,
+              voters };
+          }).sort((a,b) => b.count-a.count || a.name.localeCompare(b.name));
+          return { category, results };
+        }));
         return;
       }
 
@@ -466,6 +499,13 @@ export default function PartyGamePage() {
         setRankingReveals([]);
         setSelectedAnswer(null);
         setShotValue(5);
+        setKmkResults([]);
+        if (nextRoom.current_question_type === "kiss_marry_kill") {
+          try {
+            const names = JSON.parse(nextRoom.option_one || "[]");
+            setKmkRanking(Array.isArray(names) ? names : []);
+          } catch { setKmkRanking([]); }
+        }
 
         const currentPlayers =
           await loadPlayers(nextRoom.id);
@@ -507,6 +547,10 @@ export default function PartyGamePage() {
               setShotValue(
                 Number(existingAnswer.answer)
               );
+            }
+
+            if (nextRoom.current_question_type === "kiss_marry_kill") {
+              try { setKmkRanking(JSON.parse(existingAnswer.answer)); } catch {}
             }
 
             if (
@@ -803,6 +847,16 @@ export default function PartyGamePage() {
     setRanking(next);
   }
 
+  function moveKmk(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (selectedAnswer || target < 0 || target >= kmkRanking.length) return;
+    setKmkRanking((previous) => {
+      const next = [...previous];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
+
   async function nextQuestion() {
     if (
       !room ||
@@ -1075,6 +1129,25 @@ export default function PartyGamePage() {
               </div>
             )}
 
+            {room.current_question_type === "kiss_marry_kill" && (
+              <div className="mt-8 space-y-4">
+                <p className="font-bold text-slate-500">Move each name into your Kiss, Marry, or Kill slot.</p>
+                {kmkRanking.map((name, index) => {
+                  const labels = ["KISS", "MARRY", "KILL"];
+                  const borders = ["border-pink-400", "border-green-400", "border-red-400"];
+                  return (
+                    <div key={name} className={`flex items-center gap-3 rounded-3xl border-4 ${borders[index]} bg-white p-4 shadow-md`}>
+                      <div className="w-20 shrink-0 text-left text-sm font-black text-slate-700">{labels[index]}</div>
+                      <p className="min-w-0 flex-1 truncate text-left text-xl font-black text-slate-800">{name}</p>
+                      <button type="button" aria-label={`Move ${name} up`} disabled={index === 0 || Boolean(selectedAnswer) || isSubmitting} onClick={() => moveKmk(index, -1)} className="rounded-xl bg-sky-100 p-3 text-sky-700 disabled:opacity-30"><ArrowUp className="h-5 w-5" /></button>
+                      <button type="button" aria-label={`Move ${name} down`} disabled={index === 2 || Boolean(selectedAnswer) || isSubmitting} onClick={() => moveKmk(index, 1)} className="rounded-xl bg-pink-100 p-3 text-pink-700 disabled:opacity-30"><ArrowDown className="h-5 w-5" /></button>
+                    </div>
+                  );
+                })}
+                <button type="button" onClick={() => submitAnswer(JSON.stringify(kmkRanking))} disabled={Boolean(selectedAnswer) || isSubmitting || kmkRanking.length !== 3 || new Set(kmkRanking).size !== 3} className="mt-5 w-full rounded-3xl bg-gradient-to-r from-violet-400 to-purple-500 px-6 py-5 text-2xl font-black text-white shadow-lg disabled:opacity-50">Submit Choices</button>
+              </div>
+            )}
+
             {room.current_question_type ===
               "most_likely" && (
               <div className="mt-8">
@@ -1308,6 +1381,32 @@ export default function PartyGamePage() {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+
+            {room.current_question_type === "kiss_marry_kill" && (
+              <div className="mt-8 space-y-6">
+                {kmkResults.map((category) => (
+                  <div key={category.category} className={`rounded-3xl border-4 bg-white p-5 shadow-md ${category.category === "Kiss" ? "border-pink-400" : category.category === "Marry" ? "border-green-400" : "border-red-400"}`}>
+                    <h2 className="mb-5 text-2xl font-black text-slate-800">{category.category}</h2>
+                    <div className="space-y-5">
+                      {category.results.map((result, index) => (
+                        <div key={result.name} className="text-left">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="font-black text-slate-800">{result.name}</p>
+                            <p className="text-xl font-black text-blue-500">{result.percent}%</p>
+                          </div>
+                          <div className="mt-2 h-4 overflow-hidden rounded-full bg-slate-100">
+                            <div className={`h-full rounded-full transition-all duration-700 ${category.category === "Kiss" ? "bg-pink-400" : category.category === "Marry" ? "bg-green-400" : "bg-red-400"}`} style={{width: `${result.percent}%`, transitionDelay: `${index * 150}ms`}} />
+                          </div>
+                          {room.current_result_uncovered && (
+                            <p className="mt-2 text-sm font-bold text-slate-500">{result.voters.length ? result.voters.join(", ") : "No votes"}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 

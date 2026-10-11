@@ -11,6 +11,7 @@ import {
   Sparkles,
   Trophy,
   Users,
+  Ghost,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
@@ -24,6 +25,7 @@ import {
   PARTY_TOTAL_ROUNDS,
 } from "@/lib/party";
 import { createFoolMeOnceGame } from "@/lib/fool-me-once";
+import { createParanoiaGame } from "@/lib/paranoia";
 import type { Player } from "@/lib/types";
 
 const games = [
@@ -45,19 +47,26 @@ const games = [
     description: "Write truths, dares, and questions for the group.",
     icon: Sparkles,
   },
-  {
+  /*{
     id: "fool_me_once",
     name: "Fool Me Once",
     description: "Tell the truth, write convincing bluffs, and fool your friends.",
     icon: Trophy,
+  },*/
+  {
+    id: "paranoia",
+    name: "Paranoia",
+    description: "Answer secret questions and discover which ones get revealed.",
+    icon: Ghost,
   },
 ] as const;
 
-type AvailableGame = "spicy" | "party" | "truth_or_dare" | "fool_me_once";
+type AvailableGame = "spicy" | "party" | "truth_or_dare" | "fool_me_once" | "paranoia";
 
 function getGamePath(game: AvailableGame) {
   if (game === "truth_or_dare") return "truth-or-dare";
   if (game === "fool_me_once") return "fool-me-once";
+  if (game === "paranoia") return "paranoia";
   return game;
 }
 
@@ -238,6 +247,10 @@ export default function HostPage() {
       if (selectedGame === "fool_me_once") {
         await createFoolMeOnceGame(roomId, players);
       }
+
+      if (selectedGame === "paranoia") {
+        await createParanoiaGame(roomId, players);
+      }
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -269,7 +282,8 @@ export default function HostPage() {
             game !== "spicy" &&
             game !== "party" &&
             game !== "truth_or_dare" &&
-            game !== "fool_me_once"
+            game !== "fool_me_once" &&
+            game !== "paranoia"
           ) {
             return;
           }
