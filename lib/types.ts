@@ -126,6 +126,7 @@ export type FoolMeOnceRound = {
   prompt_id: string;
   real_answer: string | null;
   choice_order: string[];
+  referenced_player_id: string | null;
   created_at?: string;
 };
 
