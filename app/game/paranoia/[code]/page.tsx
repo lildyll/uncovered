@@ -11,6 +11,7 @@ import {
   getParanoiaQuestion,
   getParanoiaQuestions,
   returnParanoiaToLobby,
+  startParanoiaSecondRound,
 } from "@/lib/paranoia";
 import type { ParanoiaQuestion, Player, Room } from "@/lib/types";
 
@@ -31,6 +32,9 @@ export default function ParanoiaPage() {
   const [questions, setQuestions] = useState<ParanoiaQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<ParanoiaQuestion | null>(null);
   const [questionText, setQuestionText] = useState("");
+  const stage = (room?.paranoia_stage === 2 ? 2 : 1) as 1 | 2;
+  const assignedTargetId = stage === 2 && playerId ? room?.paranoia_assignments?.[playerId] : null;
+  const assignedTargetName = players.find(p => p.id === assignedTargetId)?.name || "another player";
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [submittedCount, setSubmittedCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,14 +59,14 @@ export default function ParanoiaPage() {
     return data || [];
   }, []);
 
-  const loadSetupStatus = useCallback(async (roomId: string) => {
+  const loadSetupStatus = useCallback(async (roomId: string, currentStage: 1 | 2) => {
     const { data, error: questionsError } = await getParanoiaQuestions(roomId);
     if (questionsError) {
       setError(questionsError.message);
       return;
     }
 
-    const loaded = data || [];
+    const loaded = (data || []).filter(q => (q.stage || 1) === currentStage);
     setQuestions(loaded);
     setSubmittedCount(loaded.length);
 
@@ -112,7 +116,7 @@ export default function ParanoiaPage() {
       setCurrentQuestion(null);
       setWheelResult(null);
       setShowRevealResult(false);
-      await loadSetupStatus(nextRoom.id);
+      await loadSetupStatus(nextRoom.id, nextRoom.paranoia_stage === 2 ? 2 : 1);
       return;
     }
 
@@ -195,14 +199,14 @@ export default function ParanoiaPage() {
       return;
     }
 
-    const loaded = data || [];
+    const loaded = (data || []).filter(q => (q.stage || 1) === (room.paranoia_stage === 2 ? 2 : 1));
     setQuestions(loaded);
     setSubmittedCount(loaded.length);
 
     if (loaded.length < players.length || players.length < 2) return;
 
     try {
-      const { turnOrder, playerOrder } = buildParanoiaOrder(loaded, players);
+      const { turnOrder, playerOrder } = buildParanoiaOrder(loaded, players, room.paranoia_stage === 2 ? 2 : 1);
 
       const { error: updateError } = await supabase
         .from("rooms")
@@ -240,13 +244,13 @@ export default function ParanoiaPage() {
           filter: `room_id=eq.${room.id}`,
         },
         async () => {
-          await loadSetupStatus(room.id);
+          await loadSetupStatus(room.id, room.paranoia_stage === 2 ? 2 : 1);
           await advanceSetup();
         }
       )
       .subscribe();
 
-    loadSetupStatus(room.id);
+    loadSetupStatus(room.id, room.paranoia_stage);
     advanceSetup();
 
     return () => {
@@ -255,7 +259,7 @@ export default function ParanoiaPage() {
   }, [advanceSetup, loadSetupStatus, room?.id, room?.paranoia_phase]);
 
   async function submitQuestion() {
-    if (!room || !playerId || hasSubmitted || isSubmitting) return;
+    if (!room || !playerId || hasSubmitted || isSubmitting || (stage === 2 && !assignedTargetId)) return;
 
     const clean = questionText.trim().replace(/\s+/g, " ");
     if (!clean) {
@@ -272,6 +276,8 @@ export default function ParanoiaPage() {
         room_id: room.id,
         author_player_id: playerId,
         question: clean,
+        stage,
+        target_player_id: stage === 2 ? assignedTargetId : null,
       });
 
     if (insertError) {
@@ -319,7 +325,11 @@ export default function ParanoiaPage() {
 
     if (nextIndex >= order.length) {
       try {
-        await returnParanoiaToLobby(room.id);
+        if (room.paranoia_stage === 2) {
+          await returnParanoiaToLobby(room.id);
+        } else {
+          await startParanoiaSecondRound(room.id, players);
+        }
       } catch (caught) {
         setError(caught instanceof Error ? caught.message : "Could not return to the lobby.");
       }
@@ -343,26 +353,8 @@ export default function ParanoiaPage() {
     if (updateError) {
       setError(updateError.message);
     }
-  }, [isHost, room]);
+  }, [isHost, room, players]);
 
-  useEffect(() => {
-    if (
-      !room ||
-      room.paranoia_phase !== "reveal" ||
-      wheelResult === null
-    ) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      setShowRevealResult(true);
-      setIsSpinning(false);
-    }, COIN_FLIP_DURATION);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [room, wheelResult]);
 
   useEffect(() => {
     if (
@@ -395,7 +387,7 @@ export default function ParanoiaPage() {
 
   const phaseLabel = useMemo(() => {
     if (!room) return "Paranoia";
-    if (room.paranoia_phase === "setup") return "Write a Question";
+    if (room.paranoia_phase === "setup") return room.paranoia_stage === 2 ? "Targeted Questions" : "Write a Question";
     if (room.paranoia_phase === "reveal") return "The Wheel Decides";
     return isCurrentPlayer ? "Your Question" : `${currentPlayerName}'s Turn`;
   }, [currentPlayerName, isCurrentPlayer, room]);
@@ -485,10 +477,10 @@ export default function ParanoiaPage() {
 
         {room.paranoia_phase === "setup" && (
           <>
-            <p className="mt-6 text-sm font-black uppercase tracking-widest text-violet-500">Everyone Writes One</p>
-            <h1 className="mt-3 text-4xl font-black text-slate-800">A Question About Someone Here</h1>
+            <p className="mt-6 text-sm font-black uppercase tracking-widest text-violet-500">{stage === 2 ? "Round 2 — Targeted" : "Round 1 — Classic"}</p>
+            <h1 className="mt-3 text-4xl font-black text-slate-800">{stage === 2 ? `Write a Question for ${assignedTargetName}` : "A Question About Someone Here"}</h1>
             <p className="mt-4 font-bold text-slate-500">
-              Write something about another person at the party. Your question will be shown privately to someone else.
+              {stage === 2 ? `This question will go directly to ${assignedTargetName}. They will answer it out loud.` : "Write something about another person at the party. Your question will be shown privately to someone else."}
             </p>
 
             <p className="mt-5 text-sm font-black uppercase tracking-wide text-sky-600">
@@ -530,7 +522,7 @@ export default function ParanoiaPage() {
         {room.paranoia_phase === "turn" && currentQuestion && (
           <>
             <p className="mt-5 text-sm font-black uppercase tracking-wide text-slate-400">
-              {room.current_round} / {room.paranoia_turn_order.length}
+              Round {stage} · Turn {room.current_round} / {room.paranoia_turn_order.length}
             </p>
 
             <p className="mt-5 text-sm font-black uppercase tracking-widest text-pink-500">
@@ -575,7 +567,7 @@ export default function ParanoiaPage() {
         {room.paranoia_phase === "reveal" && currentQuestion && (
           <>
             <p className="mt-5 text-sm font-black uppercase tracking-wide text-slate-400">
-              {room.current_round} / {room.paranoia_turn_order.length}
+              Round {stage} · Turn {room.current_round} / {room.paranoia_turn_order.length}
             </p>
 
             {!showRevealResult ? (
@@ -615,7 +607,7 @@ export default function ParanoiaPage() {
                 className="mt-8 w-full rounded-3xl bg-gradient-to-r from-emerald-400 to-green-400 px-6 py-5 text-2xl font-black text-white shadow-lg transition hover:scale-[1.02]"
               >
                 <span className="flex items-center justify-center gap-3">
-                  Next Player
+                  {room.paranoia_current_index + 1 >= room.paranoia_turn_order.length ? (stage === 1 ? "Start Round 2" : "Back to Lobby") : "Next Player"}
                   <Shuffle className="h-6 w-6" />
                 </span>
               </button>

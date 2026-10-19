@@ -5,7 +5,7 @@ export type PartyQuestionType =
   | "never_have_i_ever"
   | "how_many_shots"
   | "most_likely"
-  | "kiss_marry_kill";
+  | "spicy";
 
 export type QuestionType = SpicyQuestionType | PartyQuestionType;
 
@@ -61,6 +61,8 @@ export type Room = {
   paranoia_current_question_id: string | null;
   paranoia_current_player_id: string | null;
   paranoia_reveal: boolean;
+  paranoia_stage: 1 | 2;
+  paranoia_assignments: Record<string, string>;
 
   fool_me_once_phase: FoolMeOncePhase;
   fool_me_once_round_order: string[];
@@ -124,7 +126,6 @@ export type FoolMeOnceRound = {
   prompt_id: string;
   real_answer: string | null;
   choice_order: string[];
-  referenced_player_id: string | null;
   created_at?: string;
 };
 
@@ -150,5 +151,7 @@ export type ParanoiaQuestion = {
   room_id: string;
   author_player_id: string;
   question: string;
+  stage: number;
+  target_player_id: string | null;
   created_at?: string;
 };

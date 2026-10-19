@@ -29,7 +29,7 @@ export async function getParanoiaPlayers(roomId: string) {
 export async function getParanoiaQuestions(roomId: string) {
   return supabase
     .from("paranoia_questions")
-    .select("id, room_id, author_player_id, question, created_at")
+    .select("id, room_id, author_player_id, question, stage, target_player_id, created_at")
     .eq("room_id", roomId)
     .order("created_at", { ascending: true })
     .returns<ParanoiaQuestion[]>();
@@ -38,19 +38,36 @@ export async function getParanoiaQuestions(roomId: string) {
 export async function getParanoiaQuestion(questionId: string) {
   return supabase
     .from("paranoia_questions")
-    .select("id, room_id, author_player_id, question, created_at")
+    .select("id, room_id, author_player_id, question, stage, target_player_id, created_at")
     .eq("id", questionId)
     .single<ParanoiaQuestion>();
 }
 
 export function buildParanoiaOrder(
   questions: ParanoiaQuestion[],
-  players: Player[]
+  players: Player[],
+  stage: 1 | 2 = 1
 ) {
   if (questions.length !== players.length) {
     throw new Error(
       "Paranoia needs exactly one question from each player."
     );
+  }
+
+  if (stage === 2) {
+    const byTarget = new Map(questions.map((question) => [question.target_player_id, question]));
+    const recipients = shuffleArray(players);
+    if (byTarget.size !== players.length || questions.some(q => !q.target_player_id || q.target_player_id === q.author_player_id)) {
+      throw new Error("Every player must have one question from someone else.");
+    }
+    return {
+      turnOrder: recipients.map(p => {
+        const q = byTarget.get(p.id);
+        if (!q) throw new Error("Missing targeted question for " + p.name);
+        return q.id;
+      }),
+      playerOrder: recipients.map(p => p.id),
+    };
   }
 
   const byAuthor = new Map(
@@ -110,6 +127,8 @@ export async function createParanoiaGame(
       game_phase: "question",
       current_round: 0,
       paranoia_phase: "setup",
+      paranoia_stage: 1,
+      paranoia_assignments: {},
       paranoia_turn_order: [],
       paranoia_turn_player_order: [],
       paranoia_current_index: 0,
@@ -120,6 +139,29 @@ export async function createParanoiaGame(
     .eq("id", roomId);
 
   if (roomError) throw new Error(roomError.message);
+}
+
+export async function startParanoiaSecondRound(roomId: string, players: Player[]) {
+  if (players.length < 2) throw new Error("Paranoia needs at least two players.");
+  const shuffled = shuffleArray(players);
+  const assignments: Record<string, string> = {};
+  shuffled.forEach((p, index) => {
+    assignments[p.id] = shuffled[(index + 1) % shuffled.length].id;
+  });
+  const { error: updateError } = await supabase.from("rooms").update({
+    paranoia_stage: 2,
+    paranoia_phase: "setup",
+    paranoia_assignments: assignments,
+    paranoia_turn_order: [],
+    paranoia_turn_player_order: [],
+    paranoia_current_index: 0,
+    paranoia_current_question_id: null,
+    paranoia_current_player_id: null,
+    paranoia_reveal: false,
+    current_round: 0,
+    game_phase: "question",
+  }).eq("id", roomId).eq("paranoia_stage", 1).eq("paranoia_phase", "reveal");
+  if (updateError) throw new Error(updateError.message);
 }
 
 export async function returnParanoiaToLobby(roomId: string) {
@@ -142,6 +184,8 @@ export async function returnParanoiaToLobby(roomId: string) {
       option_one: null,
       option_two: null,
       paranoia_phase: "setup",
+      paranoia_stage: 1,
+      paranoia_assignments: {},
       paranoia_turn_order: [],
       paranoia_turn_player_order: [],
       paranoia_current_index: 0,
