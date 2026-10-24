@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Eye, HelpCircle, Send, Shuffle, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import HostMenu from "@/components/HostMenu";
 import {
   PARANOIA_REVEAL_DURATION,
   buildParanoiaOrder,
@@ -468,6 +469,7 @@ export default function ParanoiaPage() {
       <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
+      {room && <HostMenu roomId={room.id} game="paranoia" isHost={isHost} />}
       <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 bg-white/70 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
         <style dangerouslySetInnerHTML={{ __html: coinStyles }} />
         <div className="flex items-center justify-center gap-2">

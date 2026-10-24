@@ -12,6 +12,7 @@ import {
   Trophy,
   Users,
   Ghost,
+  X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
@@ -84,8 +85,36 @@ export default function HostPage() {
   const [selectedGame, setSelectedGame] = useState<AvailableGame>("spicy");
   const [error, setError] = useState("");
   const [isStarting, setIsStarting] = useState(false);
+  const [kickingPlayerId, setKickingPlayerId] = useState<string | null>(null);
 
   const canStart = players.length >= 2;
+
+  async function kickPlayer(player: Player) {
+    if (!roomId || !playerId || player.id === playerId || kickingPlayerId) return;
+
+    if (!window.confirm(`Remove ${player.name} from the lobby?`)) return;
+
+    setError("");
+    setKickingPlayerId(player.id);
+
+    try {
+      const { data, error: kickError } = await supabase
+        .from("players")
+        .delete()
+        .eq("id", player.id)
+        .eq("room_id", roomId)
+        .select("id");
+
+      if (kickError) throw new Error(kickError.message);
+      if (!data?.length) throw new Error("Player was not removed. Check your Supabase delete permissions.");
+
+      setPlayers((current) => current.filter((entry) => entry.id !== player.id));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not remove player.");
+    } finally {
+      setKickingPlayerId(null);
+    }
+  }
 
   async function endGame() {
     if (!roomId) return;
@@ -351,10 +380,21 @@ export default function HostPage() {
                       <p className="font-bold text-slate-700">{player.name}</p>
                     </div>
 
-                    {player.id === playerId && (
+                    {player.id === playerId ? (
                       <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-700">
                         Host
                       </span>
+                    ) : (
+                      <button
+                        type="button"
+                        aria-label={`Kick ${player.name}`}
+                        title={`Remove ${player.name}`}
+                        onClick={() => kickPlayer(player)}
+                        disabled={Boolean(kickingPlayerId) || isStarting}
+                        className="rounded-xl bg-red-100 p-2 text-red-600 transition hover:bg-red-200 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
                     )}
                   </div>
                 ))}

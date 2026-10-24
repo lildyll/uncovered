@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Gamepad2, User, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -27,6 +27,18 @@ export default function RoomPage() {
   const [roomId, setRoomId] = useState("");
   const [players, setPlayers] = useState<Player[]>([]);
   const [error, setError] = useState("");
+  const leavingRef = useRef(false);
+
+  function redirectIfRemoved(currentPlayers: Player[]) {
+    if (playerId && !currentPlayers.some((player) => player.id === playerId)) {
+      if (!leavingRef.current) {
+        leavingRef.current = true;
+        router.replace("/");
+      }
+      return true;
+    }
+    return false;
+  }
 
   async function leaveGame() {
     if (!playerId) {
@@ -62,27 +74,8 @@ export default function RoomPage() {
 
       setRoomId(room.id);
 
-      const game = room.selected_game as AvailableGame | null;
-
-      if (
-        room.game_started &&
-        game &&
-        (
-          game === "spicy" ||
-          game === "party" ||
-          game === "truth_or_dare" ||
-          game === "fool_me_once" ||
-          game === "paranoia"
-        )
-      ) {
-        router.push(
-          `/game/${getGamePath(game)}/${code}?name=${encodeURIComponent(
-            playerName
-          )}&playerId=${playerId || ""}`
-        );
-        return;
-      }
-
+      // Check membership before routing into an active game.
+      // A kicked player must not be able to rejoin using a stale lobby URL.
       const { data: playerData, error: playersError } = await supabase
         .from("players")
         .select("id, room_id, name, score, created_at")
@@ -94,7 +87,20 @@ export default function RoomPage() {
         return;
       }
 
-      setPlayers(playerData || []);
+      const currentPlayers = playerData || [];
+      if (redirectIfRemoved(currentPlayers)) return;
+      setPlayers(currentPlayers);
+
+      const game = room.selected_game as AvailableGame | null;
+      if (room.game_started && game && (
+        game === "spicy" || game === "party" ||
+        game === "truth_or_dare" || game === "fool_me_once" ||
+        game === "paranoia"
+      )) {
+        router.push(
+          `/game/${getGamePath(game)}/${code}?name=${encodeURIComponent(playerName)}&playerId=${playerId || ""}`
+        );
+      }
     }
 
     loadRoom();
@@ -104,28 +110,43 @@ export default function RoomPage() {
     if (!roomId) return;
 
     async function refreshPlayers() {
-      const { data } = await supabase
+      const { data, error: refreshError } = await supabase
         .from("players")
         .select("id, room_id, name, score, created_at")
         .eq("room_id", roomId)
         .order("created_at", { ascending: true });
 
-      setPlayers(data || []);
+      if (refreshError) {
+        setError(refreshError.message);
+        return;
+      }
+      const currentPlayers = data || [];
+      if (redirectIfRemoved(currentPlayers)) return;
+      setPlayers(currentPlayers);
     }
 
     const channel = supabase
       .channel(`player-room-${roomId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "players" },
+        { event: "*", schema: "public", table: "players", filter: `room_id=eq.${roomId}` },
         refreshPlayers
       )
       .subscribe();
 
+    // Also check when the tab becomes active again, in case a phone
+    // missed a realtime event while the browser was suspended.
+    function onFocus() { void refreshPlayers(); }
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    void refreshPlayers();
+
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
-  }, [roomId]);
+  }, [roomId, playerId, router]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -135,7 +156,7 @@ export default function RoomPage() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rooms" },
-        (payload) => {
+        async (payload) => {
           if (payload.eventType === "DELETE" && payload.old.id === roomId) {
             router.push("/");
             return;
@@ -149,6 +170,20 @@ export default function RoomPage() {
             return;
           }
 
+          if (leavingRef.current) return;
+          const { data: membership, error: membershipError } = await supabase
+            .from("players")
+            .select("id")
+            .eq("id", playerId || "")
+            .eq("room_id", roomId)
+            .maybeSingle();
+          if (membershipError || !membership) {
+            if (!membershipError && !leavingRef.current) {
+              leavingRef.current = true;
+              router.replace("/");
+            }
+            return;
+          }
           const game = payload.new.selected_game as AvailableGame | null;
 
           if (

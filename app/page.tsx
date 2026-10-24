@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PartyPopper, Gamepad2, User, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { ensureAnonymousUser } from "@/lib/auth";
 
 function makeRoomCode() {
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -38,15 +39,19 @@ export default function Home() {
     }
 
     setIsCreating(true);
-
+    
     try {
+      const user = await ensureAnonymousUser();
       const code = makeRoomCode();
 
       const { data: room, error: roomError } = await supabase
-        .from("rooms")
-        .insert({ code })
-        .select("id")
-        .single();
+      .from("rooms")
+      .insert({
+        code,
+        host_user_id: user.id,
+      })
+      .select("id")
+      .single();
 
       if (roomError || !room) {
         setError(roomError?.message || "Could not create room.");
@@ -58,6 +63,7 @@ export default function Home() {
         .insert({
           room_id: room.id,
           name: playerName,
+          user_id: user.id,
         })
         .select("id")
         .single();
@@ -97,6 +103,7 @@ export default function Home() {
     setIsJoining(true);
 
     try {
+      const user = await ensureAnonymousUser();
       const { data: room, error: roomError } = await supabase
         .from("rooms")
         .select("id, game_started")
@@ -122,7 +129,8 @@ export default function Home() {
         .from("players")
         .insert({
           room_id: room.id,
-          name: playerName.trim(),
+          name: playerName,
+          user_id: user.id,
         })
         .select("id")
         .single();
