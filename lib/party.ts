@@ -307,9 +307,15 @@ export async function createNextPartyQuestion(
 
 
 
-  const requiredType =
+  // TEMPORARY TEST SETTINGS
+  const TEST_QUESTION_ID = "1c6a55ca-0abd-4dda-823c-007a85f6321b";
 
-    partyTypeOrder[round - 1];
+  // Set to true to test a specific question.
+  const TEST_MODE = false;
+
+  const requiredType = TEST_MODE
+    ? "how_many_shots"
+    : partyTypeOrder[round - 1];
 
 
 
@@ -412,12 +418,14 @@ export async function createNextPartyQuestion(
 
 
 
-  const randomQuestion =
-
-    unusedQuestions[
-
+  const randomQuestion = TEST_MODE
+  ? unusedQuestions.find(
+      (question) => question.id === TEST_QUESTION_ID
+    ) ?? unusedQuestions[
       Math.floor(Math.random() * unusedQuestions.length)
-
+    ]
+  : unusedQuestions[
+      Math.floor(Math.random() * unusedQuestions.length)
     ];
 
 

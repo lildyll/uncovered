@@ -162,6 +162,16 @@ export default function PartyGamePage() {
   const [revealedRankingCount, setRevealedRankingCount] =
     useState(0);
 
+  // Keep the stored slider values numeric; only change their labels.
+  const isShotsQuestion = /\bshots\b/i.test(room?.current_question || "");
+
+  function displayScaleValue(value: number): string {
+    if (!isShotsQuestion) {
+      return value >= 11 ? "10+" : String(value);
+    }
+    return formatShotValue(value);
+  }
+
   const playerMap = useMemo(
     () =>
       new Map(
@@ -1018,16 +1028,11 @@ export default function PartyGamePage() {
               "how_many_shots" && (
               <div className="mt-10 rounded-3xl bg-white p-6 shadow-md">
                 <p className="text-6xl font-black text-rose-500">
-                  {formatShotValue(
-                    shotValue
-                  )}
+                  {displayScaleValue(shotValue)}
                 </p>
 
                 <p className="mt-2 font-bold text-slate-500">
-                  shot
-                  {shotValue === 1
-                    ? ""
-                    : "s"}
+                  {isShotsQuestion ? (shotValue === 1 ? "shot" : "shots") : ""}
                 </p>
 
                 <input
@@ -1072,9 +1077,7 @@ export default function PartyGamePage() {
                   className="mt-7 w-full rounded-3xl bg-gradient-to-r from-rose-400 to-pink-500 px-6 py-5 text-2xl font-black text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Lock In{" "}
-                  {formatShotValue(
-                    shotValue
-                  )}
+                  {displayScaleValue(shotValue)}
                 </button>
               </div>
             )}
@@ -1282,15 +1285,13 @@ export default function PartyGamePage() {
                     Average
                   </p>
                   <p className="break-words text-4xl font-black text-rose-500 md:text-6xl">
-                    {shotAverage >= 10.5
+                    {isShotsQuestion && shotAverage >= 10.5
                       ? "Alcohol Poisoning"
-                      : shotAverage.toFixed(
-                          1
-                        )}
+                      : shotAverage.toFixed(1)}
                   </p>
-                  <p className="mt-2 font-bold text-slate-500">
-                    shots
-                  </p>
+                  {isShotsQuestion && (
+                    <p className="mt-2 font-bold text-slate-500">shots</p>
+                  )}
                 </div>
 
                 {room.current_result_uncovered && (
@@ -1305,9 +1306,7 @@ export default function PartyGamePage() {
                             {vote.voter}
                           </span>
                           <span className="text-2xl font-black text-rose-500">
-                            {formatShotValue(
-                              vote.value
-                            )}
+                            {displayScaleValue(vote.value)}
                           </span>
                         </div>
                       )
