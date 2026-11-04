@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Gamepad2, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { changeRoomMembership } from "@/lib/room-membership";
 import type { Player } from "@/lib/types";
 import UncoveredLogo from "@/components/UncoveredLogo";
 import PlayerAvatar from "@/components/PlayerAvatar";
@@ -50,13 +51,11 @@ export default function RoomPage() {
       return;
     }
 
-    const { error: deleteError } = await supabase
-      .from("players")
-      .delete()
-      .eq("id", playerId);
-
-    if (deleteError) {
-      setError(deleteError.message);
+    try {
+      if (!roomId) throw new Error("Room is still loading.");
+      await changeRoomMembership("leave", roomId, playerId);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not leave room.");
       return;
     }
 

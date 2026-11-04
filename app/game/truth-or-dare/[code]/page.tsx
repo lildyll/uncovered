@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
+import PlayerAvatar from "@/components/PlayerAvatar";
+import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 import {
   buildTruthOrDareOrder,
   clearTruthOrDareRoom,
@@ -66,12 +68,13 @@ export default function TruthOrDarePage() {
 
   const [room, setRoom] = useState<Room | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const avatarUrls = useRoomAvatarUrls(room?.id || "", players);
   const [currentItem, setCurrentItem] = useState<TruthOrDareItem | null>(null);
 
   const [prompt, setPrompt] = useState("");
   const [targetPlayerId, setTargetPlayerId] = useState("");
-  const [hasSubmittedSetup, setHasSubmittedSetup] = useState(false);
-  const [setupSubmittedCount, setSetupSubmittedCount] = useState(0);
+  const [setupStage, setSetupStage] = useState<TruthOrDareItemType | "done">("truth");
+  const [setupCompletedCount, setSetupCompletedCount] = useState(0);
 
   const [answerText, setAnswerText] = useState("");
   const [hasAnswered, setHasAnswered] = useState(false);
@@ -105,46 +108,53 @@ export default function TruthOrDarePage() {
     }
 
     const loaded = data || [];
-    setPlayers(loaded);
+    const { data: avatarPlayers, error: avatarError } = await supabase
+      .from("players")
+      .select("id, photo_path")
+      .eq("room_id", roomId);
+    if (avatarError) setError(avatarError.message);
+    const photoPaths = new Map((avatarPlayers || []).map((p) => [p.id, p.photo_path]));
+    setPlayers(loaded.map((p) => ({ ...p, photo_path: photoPaths.get(p.id) || null })));
     return loaded;
   }, []);
 
+  // Each player advances independently; the room stays in setup until all finish.
   const loadSetupStatus = useCallback(
     async (currentRoom: Room, currentPlayerId: string | null) => {
       if (currentRoom.truth_or_dare_stage === "play") return;
 
-      const stage = currentRoom.truth_or_dare_stage as TruthOrDareItemType;
-      const { count, error: countError } = await countTruthOrDareItems(
-        currentRoom.id,
-        stage
+      const { data, error: itemsError } = await supabase
+        .from("truth_or_dare_items")
+        .select("author_player_id, type")
+        .eq("room_id", currentRoom.id);
+
+      if (itemsError) {
+        setError(itemsError.message);
+        return;
+      }
+
+      const submissions = new Map<string, Set<string>>();
+      for (const item of data || []) {
+        const stages = submissions.get(item.author_player_id) || new Set<string>();
+        stages.add(item.type);
+        submissions.set(item.author_player_id, stages);
+      }
+
+      setSetupCompletedCount(
+        [...submissions.values()].filter((stages) =>
+          SETUP_STAGES.every((stage) => stages.has(stage))
+        ).length
       );
 
-      if (countError) {
-        setError(countError.message);
-        return;
-      }
-
-      setSetupSubmittedCount(count || 0);
-
-      if (!currentPlayerId) {
-        setHasSubmittedSetup(false);
-        return;
-      }
-
-      const { data: existingSubmission, error: existingError } = await supabase
-        .from("truth_or_dare_items")
-        .select("id")
-        .eq("room_id", currentRoom.id)
-        .eq("author_player_id", currentPlayerId)
-        .eq("type", stage)
-        .maybeSingle();
-
-      if (existingError) {
-        setError(existingError.message);
-        return;
-      }
-
-      setHasSubmittedSetup(Boolean(existingSubmission));
+      const mine = currentPlayerId ? submissions.get(currentPlayerId) : undefined;
+      const nextStage = SETUP_STAGES.find((stage) => !mine?.has(stage)) || "done";
+      setSetupStage((previous) => {
+        if (previous !== nextStage) {
+          setPrompt("");
+          setTargetPlayerId("");
+        }
+        return nextStage;
+      });
     },
     []
   );
@@ -265,9 +275,6 @@ export default function TruthOrDarePage() {
         await loadCurrentItem(nextRoom);
       } else {
         setCurrentItem(null);
-        setPrompt("");
-        setTargetPlayerId("");
-        setHasSubmittedSetup(false);
         await loadSetupStatus(nextRoom, playerId);
       }
     },
@@ -334,46 +341,33 @@ export default function TruthOrDarePage() {
   }, [room?.id, applyRoomState, loadPlayers]);
 
   const advanceSetupIfReady = useCallback(async () => {
-    if (
-      !room ||
-      !isHost ||
-      room.truth_or_dare_stage === "play" ||
-      players.length === 0
-    ) {
+    if (!room || !isHost || room.truth_or_dare_stage === "play" || players.length === 0) return;
+
+    const { data, error: itemsError } = await supabase
+      .from("truth_or_dare_items")
+      .select("author_player_id, type")
+      .eq("room_id", room.id);
+
+    if (itemsError) {
+      setError(itemsError.message);
       return;
     }
 
-    const currentStage = room.truth_or_dare_stage as TruthOrDareItemType;
-    const { count, error: countError } = await countTruthOrDareItems(
-      room.id,
-      currentStage
-    );
-
-    if (countError) {
-      setError(countError.message);
-      return;
+    const byPlayer = new Map<string, Set<string>>();
+    for (const item of data || []) {
+      const stages = byPlayer.get(item.author_player_id) || new Set<string>();
+      stages.add(item.type);
+      byPlayer.set(item.author_player_id, stages);
     }
 
-    setSetupSubmittedCount(count || 0);
-    if ((count || 0) < players.length) return;
-
-    const stageIndex = SETUP_STAGES.indexOf(currentStage);
-
-    if (stageIndex < SETUP_STAGES.length - 1) {
-      const nextStage = SETUP_STAGES[stageIndex + 1];
-      const { error: updateError } = await supabase
-        .from("rooms")
-        .update({ truth_or_dare_stage: nextStage })
-        .eq("id", room.id)
-        .eq("truth_or_dare_stage", currentStage);
-
-      if (updateError) setError(updateError.message);
-      return;
-    }
+    // Do not begin until every currently joined player has all three items.
+    if (!players.every((player) =>
+      SETUP_STAGES.every((stage) => byPlayer.get(player.id)?.has(stage))
+    )) return;
 
     try {
-      const { order, revealItemIds } =
-        await buildTruthOrDareOrder(room.id);
+      const { order, revealItemIds } = await buildTruthOrDareOrder(room.id);
+      if (!order.length) throw new Error("No Truth or Dare questions were created.");
 
       const { error: playError } = await supabase
         .from("rooms")
@@ -387,17 +381,13 @@ export default function TruthOrDarePage() {
           game_phase: "question",
         })
         .eq("id", room.id)
-        .eq("truth_or_dare_stage", "everyone");
+        .neq("truth_or_dare_stage", "play");
 
       if (playError) throw new Error(playError.message);
     } catch (caughtError) {
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : "Could not start Truth or Dare."
-      );
+      setError(caughtError instanceof Error ? caughtError.message : "Could not start Truth or Dare.");
     }
-  }, [isHost, players.length, room]);
+  }, [isHost, players, room]);
 
   useEffect(() => {
     if (!room?.id || room.truth_or_dare_stage === "play") return;
@@ -406,7 +396,7 @@ export default function TruthOrDarePage() {
       .channel(`truth-or-dare-setup-${room.id}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "truth_or_dare_items" },
+        { event: "INSERT", schema: "public", table: "truth_or_dare_items", filter: `room_id=eq.${room.id}` },
         async () => {
           await loadSetupStatus(room, playerId);
           await advanceSetupIfReady();
@@ -414,12 +404,10 @@ export default function TruthOrDarePage() {
       )
       .subscribe();
 
-    loadSetupStatus(room, playerId);
-    advanceSetupIfReady();
+    void loadSetupStatus(room, playerId);
+    void advanceSetupIfReady();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [room, playerId, loadSetupStatus, advanceSetupIfReady]);
 
   const checkEveryoneAnswered = useCallback(async () => {
@@ -491,14 +479,14 @@ export default function TruthOrDarePage() {
     if (
       !room ||
       !playerId ||
-      hasSubmittedSetup ||
+      setupStage === "done" ||
       isSubmitting ||
       room.truth_or_dare_stage === "play"
     ) {
       return;
     }
 
-    const stage = room.truth_or_dare_stage as TruthOrDareItemType;
+    const stage = setupStage as TruthOrDareItemType;
 
     if (!prompt.trim()) {
       setError("Enter something first.");
@@ -529,8 +517,9 @@ export default function TruthOrDarePage() {
       return;
     }
 
-    setHasSubmittedSetup(true);
-    setSetupSubmittedCount((count) => count + 1);
+    setSetupStage(stage === "truth" ? "dare" : stage === "dare" ? "everyone" : "done");
+    setPrompt("");
+    setTargetPlayerId("");
     setIsSubmitting(false);
     await advanceSetupIfReady();
   }
@@ -629,7 +618,6 @@ export default function TruthOrDarePage() {
   }
 
   const isSetup = room.truth_or_dare_stage !== "play";
-  const setupStage = room.truth_or_dare_stage;
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 p-6">
@@ -650,7 +638,7 @@ export default function TruthOrDarePage() {
                 const currentIndex = SETUP_STAGES.indexOf(
                   setupStage as TruthOrDareItemType
                 );
-                const complete = index < currentIndex;
+                const complete = setupStage === "done" || index < currentIndex;
                 const active = stage === setupStage;
 
                 return (
@@ -671,20 +659,20 @@ export default function TruthOrDarePage() {
             </div>
 
             <h1 className="mt-6 text-4xl font-black text-slate-800 dark:text-slate-100">
-              {getSetupTitle(setupStage)}
+              {setupStage === "done" ? "All Done!" : getSetupTitle(setupStage)}
             </h1>
             <p className="mt-3 font-bold text-slate-500 dark:text-slate-400">
-              {getSetupDescription(setupStage)}
+              {setupStage === "done" ? "You submitted all three prompts." : getSetupDescription(setupStage)}
             </p>
             <p className="mt-4 text-sm font-black uppercase tracking-wide text-sky-600 dark:text-sky-300">
-              {setupSubmittedCount} / {players.length} submitted
+              {setupCompletedCount} / {players.length} players finished
             </p>
 
-            {hasSubmittedSetup ? (
+            {setupStage === "done" ? (
               <div className="mt-8 rounded-3xl bg-emerald-50 dark:bg-emerald-950/70 p-7">
                 <Check className="mx-auto h-12 w-12 text-emerald-500" />
                 <p className="mt-3 text-2xl font-black text-emerald-700 dark:text-emerald-300">Submitted!</p>
-                <p className="mt-2 font-bold text-slate-500 dark:text-slate-400">Waiting for everyone else...</p>
+                <p className="mt-2 font-bold text-slate-500 dark:text-slate-400">Waiting for everyone else to finish their prompts...</p>
               </div>
             ) : (
               <>
@@ -761,9 +749,12 @@ export default function TruthOrDarePage() {
                       : "scale-90 opacity-0"
                   }`}
                 >
-                  <p className="text-lg font-black uppercase tracking-wide text-blue-500">
+                  <div className="flex flex-col items-center gap-2 text-lg font-black uppercase tracking-wide text-blue-500">
+                    {currentItem.target_player_id && (
+                      <PlayerAvatar name={targetPlayer || "Player"} src={avatarUrls[currentItem.target_player_id]} size="md" />
+                    )}
                     {targetPlayer}
-                  </p>
+                  </div>
                   <h1 className="mt-3 text-4xl font-black leading-tight text-slate-800 dark:text-slate-100">
                     {currentItem.prompt}
                   </h1>
@@ -784,9 +775,12 @@ export default function TruthOrDarePage() {
                       : "scale-90 opacity-0"
                   }`}
                 >
-                  <p className="text-lg font-black uppercase tracking-wide text-rose-500">
+                  <div className="flex flex-col items-center gap-2 text-lg font-black uppercase tracking-wide text-rose-500">
+                    {currentItem.target_player_id && (
+                      <PlayerAvatar name={targetPlayer || "Player"} src={avatarUrls[currentItem.target_player_id]} size="md" />
+                    )}
                     {targetPlayer}
-                  </p>
+                  </div>
                   <h1 className="mt-3 text-4xl font-black leading-tight text-slate-800 dark:text-slate-100">
                     {currentItem.prompt}
                   </h1>
@@ -863,9 +857,7 @@ export default function TruthOrDarePage() {
                             className="rounded-3xl bg-white dark:bg-slate-800 p-5 text-left shadow-md"
                           >
                             <div className="flex items-start gap-4">
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-violet-400 to-pink-400 font-black text-white">
-                                {index + 1}
-                              </div>
+                              <PlayerAvatar name={answer.playerName} src={avatarUrls[answer.playerId]} size="sm" />
                               <div>
                                 <p className="font-black text-violet-600 dark:text-violet-300">
                                   {answer.playerName}

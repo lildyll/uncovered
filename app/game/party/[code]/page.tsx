@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
+import PlayerAvatar from "@/components/PlayerAvatar";
+import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 import {
   createNextPartyQuestion,
   formatShotValue,
@@ -37,11 +39,12 @@ type BinaryResult = {
   answer: string;
   count: number;
   percent: number;
-  voters: string[];
+  voters: { id: string; name: string }[];
 };
 
 type ShotVote = {
   voter: string;
+  playerId: string;
   value: number;
 };
 
@@ -53,6 +56,7 @@ type RankingResult = {
 
 type RankingReveal = {
   voter: string;
+  playerId: string;
   ranking: string[];
 };
 
@@ -134,6 +138,7 @@ export default function PartyGamePage() {
     useState<Room | null>(null);
   const [players, setPlayers] =
     useState<Player[]>([]);
+  const avatarUrls = useRoomAvatarUrls(room?.id || "", players);
 
   const [binaryResults, setBinaryResults] =
     useState<BinaryResult[]>([]);
@@ -189,7 +194,7 @@ export default function PartyGamePage() {
         await supabase
           .from("players")
           .select(
-            "id, room_id, name, score, created_at"
+            "id, room_id, name, score, created_at, photo_path"
           )
           .eq("room_id", roomId)
           .order("created_at", {
@@ -291,14 +296,7 @@ export default function PartyGamePage() {
                     100
                 )
               : 0,
-            voters: firstAnswers
-              .map((item) =>
-                names.get(item.player_id)
-              )
-              .filter(
-                (name): name is string =>
-                  Boolean(name)
-              ),
+            voters: firstAnswers.map(item => ({ id: item.player_id, name: names.get(item.player_id) || "Player" })),
           },
           {
             answer: currentRoom.option_two,
@@ -309,14 +307,7 @@ export default function PartyGamePage() {
                     100
                 )
               : 0,
-            voters: secondAnswers
-              .map((item) =>
-                names.get(item.player_id)
-              )
-              .filter(
-                (name): name is string =>
-                  Boolean(name)
-              ),
+            voters: secondAnswers.map(item => ({ id: item.player_id, name: names.get(item.player_id) || "Player" })),
           },
         ]);
 
@@ -332,6 +323,7 @@ export default function PartyGamePage() {
             voter:
               names.get(item.player_id) ||
               "Unknown",
+            playerId: item.player_id,
             value: Number(item.answer),
           }))
           .filter((item) =>
@@ -399,6 +391,7 @@ export default function PartyGamePage() {
 
             reveals.push({
               voter: names.get(item.player_id) || "Unknown",
+              playerId: item.player_id,
               ranking: rankedPlayerIds
                 .map((id) => names.get(id))
                 .filter((name): name is string => Boolean(name)),
@@ -1100,6 +1093,7 @@ export default function PartyGamePage() {
                           {index + 1}
                         </div>
 
+                        <PlayerAvatar name={playerMap.get(rankedId) || "Player"} src={avatarUrls[rankedId]} size="sm" />
                         <p className="min-w-0 flex-1 truncate text-left text-xl font-black text-slate-800 dark:text-slate-100">
                           {playerMap.get(
                             rankedId
@@ -1262,10 +1256,11 @@ export default function PartyGamePage() {
                           {result.voters.map(
                             (voter) => (
                               <span
-                                key={voter}
-                                className="rounded-full bg-pink-100 dark:bg-pink-950 px-4 py-2 text-sm font-black text-pink-700 dark:text-pink-300"
+                                key={voter.id}
+                                className="inline-flex items-center gap-2 rounded-full bg-pink-100 dark:bg-pink-950 px-4 py-2 text-sm font-black text-pink-700 dark:text-pink-300"
                               >
-                                {voter}
+                                <PlayerAvatar name={voter.name} src={avatarUrls[voter.id]} size="sm" />
+                                {voter.name}
                               </span>
                             )
                           )}
@@ -1299,10 +1294,11 @@ export default function PartyGamePage() {
                     {shotVotes.map(
                       (vote) => (
                         <div
-                          key={vote.voter}
+                          key={vote.playerId}
                           className="flex items-center justify-between rounded-3xl bg-white dark:bg-slate-800 px-5 py-4 shadow-md"
                         >
-                          <span className="font-black text-slate-800 dark:text-slate-100">
+                          <span className="flex items-center gap-2 font-black text-slate-800 dark:text-slate-100">
+                            <PlayerAvatar name={vote.voter} src={avatarUrls[vote.playerId]} size="sm" />
                             {vote.voter}
                           </span>
                           <span className="text-2xl font-black text-rose-500">
@@ -1377,6 +1373,7 @@ export default function PartyGamePage() {
                             {originalPlacement}
                           </div>
 
+                          <PlayerAvatar name={result.name} src={avatarUrls[result.playerId]} size="md" />
                           <div className="min-w-0 flex-1 text-left">
                             <p className="text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
                               {isWinner
@@ -1416,12 +1413,13 @@ export default function PartyGamePage() {
 
                       {rankingReveals.map((reveal) => (
                         <div
-                          key={reveal.voter}
+                          key={reveal.playerId}
                           className="rounded-3xl bg-white dark:bg-slate-800 p-5 text-left shadow-md"
                         >
-                          <p className="font-black text-pink-600">
+                          <div className="flex items-center gap-2 font-black text-pink-600">
+                            <PlayerAvatar name={reveal.voter} src={avatarUrls[reveal.playerId]} size="sm" />
                             {reveal.voter}
-                          </p>
+                          </div>
 
                           <p className="mt-2 font-bold text-slate-600 dark:text-slate-300">
                             {reveal.ranking.join(" → ")}

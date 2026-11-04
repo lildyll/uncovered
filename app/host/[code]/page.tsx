@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { changeRoomMembership } from "@/lib/room-membership";
 import {
   createNextSpicyQuestion,
   generateUncoveredRounds,
@@ -101,15 +102,7 @@ export default function HostPage() {
     setKickingPlayerId(player.id);
 
     try {
-      const { data, error: kickError } = await supabase
-        .from("players")
-        .delete()
-        .eq("id", player.id)
-        .eq("room_id", roomId)
-        .select("id");
-
-      if (kickError) throw new Error(kickError.message);
-      if (!data?.length) throw new Error("Player was not removed. Check your Supabase delete permissions.");
+      await changeRoomMembership("kick", roomId, player.id);
 
       setPlayers((current) => current.filter((entry) => entry.id !== player.id));
     } catch (caught) {
@@ -122,13 +115,11 @@ export default function HostPage() {
   async function endGame() {
     if (!roomId) return;
 
-    const { error: deleteError } = await supabase
-      .from("rooms")
-      .delete()
-      .eq("id", roomId);
-
-    if (deleteError) {
-      setError(deleteError.message);
+    //if (!window.confirm("Close this room permanently? Everyone will leave and their unused photos will be deleted.")) return;
+    try {
+      await changeRoomMembership("close", roomId);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not close room.");
       return;
     }
 

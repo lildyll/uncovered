@@ -9,6 +9,8 @@ import {
 import { ArrowRight, Flame, Home } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
+import PlayerAvatar from "@/components/PlayerAvatar";
+import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 import { createNextSpicyQuestion,
   SPICY_TOTAL_ROUNDS, 
  } from "@/lib/spicy";
@@ -18,7 +20,7 @@ type Result = {
   answer: string;
   count: number;
   percent: number;
-  voters: string[];
+  voters: { id: string; name: string }[];
 };
 
 function AnimatedPercentage({
@@ -94,6 +96,7 @@ export default function SpicyGamePage() {
 
   const [room, setRoom] = useState<Room | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const avatarUrls = useRoomAvatarUrls(room?.id || "", players);
   const [results, setResults] = useState<Result[]>([]);
   const [selectedAnswer, setSelectedAnswer] =
     useState<string | null>(null);
@@ -104,7 +107,7 @@ export default function SpicyGamePage() {
   const loadPlayers = useCallback(async (roomId: string) => {
     const { data, error: playerError } = await supabase
       .from("players")
-      .select("id, room_id, name, score, created_at")
+      .select("id, room_id, name, score, created_at, photo_path")
       .eq("room_id", roomId)
       .order("created_at", { ascending: true });
 
@@ -176,9 +179,7 @@ export default function SpicyGamePage() {
               (optionOneAnswers.length / total) * 100
             )
           : 0,
-        voters: optionOneAnswers
-          .map((item) => playerNames.get(item.player_id))
-          .filter((name): name is string => Boolean(name)),
+        voters: optionOneAnswers.map(item => ({ id: item.player_id, name: playerNames.get(item.player_id) || "Player" })),
       },
       {
         answer: currentRoom.option_two,
@@ -188,9 +189,7 @@ export default function SpicyGamePage() {
               (optionTwoAnswers.length / total) * 100
             )
           : 0,
-        voters: optionTwoAnswers
-          .map((item) => playerNames.get(item.player_id))
-          .filter((name): name is string => Boolean(name)),
+        voters: optionTwoAnswers.map(item => ({ id: item.player_id, name: playerNames.get(item.player_id) || "Player" })),
       },
     ]);
   }, []);
@@ -541,6 +540,9 @@ export default function SpicyGamePage() {
                     : "bg-gradient-to-r from-emerald-400 to-green-400 hover:scale-[1.02]"
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
+                {players.find(p => p.name === room.option_one) && (
+                  <span className="mb-2 flex justify-center"><PlayerAvatar name={room.option_one || "Player"} src={avatarUrls[players.find(p => p.name === room.option_one)!.id]} size="md" /></span>
+                )}
                 {room.option_one}
               </button>
 
@@ -558,6 +560,9 @@ export default function SpicyGamePage() {
                     : "bg-gradient-to-r from-red-400 to-pink-400 hover:scale-[1.02]"
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
+                {players.find(p => p.name === room.option_two) && (
+                  <span className="mb-2 flex justify-center"><PlayerAvatar name={room.option_two || "Player"} src={avatarUrls[players.find(p => p.name === room.option_two)!.id]} size="md" /></span>
+                )}
                 {room.option_two}
               </button>
             </div>
@@ -623,10 +628,11 @@ export default function SpicyGamePage() {
                     <div className="mt-4 flex flex-wrap justify-center gap-2">
                       {result.voters.map((voter) => (
                         <span
-                          key={voter}
-                          className="rounded-full bg-pink-100 dark:bg-pink-950 px-4 py-2 text-sm font-black text-pink-700 dark:text-pink-300"
+                          key={voter.id}
+                          className="inline-flex items-center gap-2 rounded-full bg-pink-100 dark:bg-pink-950 px-4 py-2 text-sm font-black text-pink-700 dark:text-pink-300"
                         >
-                          {voter}
+                          <PlayerAvatar name={voter.name} src={avatarUrls[voter.id]} size="sm" />
+                          {voter.name}
                         </span>
                       ))}
 

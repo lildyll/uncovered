@@ -5,6 +5,8 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Eye, HelpCircle, Send, Shuffle, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
+import PlayerAvatar from "@/components/PlayerAvatar";
+import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 import {
   PARANOIA_REVEAL_DURATION,
   buildParanoiaOrder,
@@ -30,6 +32,7 @@ export default function ParanoiaPage() {
 
   const [room, setRoom] = useState<Room | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const avatarUrls = useRoomAvatarUrls(room?.id || "", players);
   const [questions, setQuestions] = useState<ParanoiaQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<ParanoiaQuestion | null>(null);
   const [questionText, setQuestionText] = useState("");
@@ -56,7 +59,10 @@ export default function ParanoiaPage() {
       setError(playerError.message);
       return [];
     }
-    setPlayers(data || []);
+    const { data: avatarPlayers } = await supabase.from("players")
+      .select("id, photo_path").eq("room_id", roomId);
+    const photoPaths = new Map((avatarPlayers || []).map(p => [p.id, p.photo_path]));
+    setPlayers((data || []).map(p => ({ ...p, photo_path: photoPaths.get(p.id) || null })));
     return data || [];
   }, []);
 
@@ -480,6 +486,9 @@ export default function ParanoiaPage() {
         {room.paranoia_phase === "setup" && (
           <>
             <p className="mt-6 text-sm font-black uppercase tracking-widest text-violet-500">{stage === 2 ? "Round 2 — Targeted" : "Round 1 — Classic"}</p>
+            {stage === 2 && assignedTargetId && (
+              <div className="mt-5 flex justify-center"><PlayerAvatar name={assignedTargetName} src={avatarUrls[assignedTargetId]} size="lg" /></div>
+            )}
             <h1 className="mt-3 text-4xl font-black text-slate-800 dark:text-slate-100">{stage === 2 ? `Write a Question for ${assignedTargetName}` : "A Question About Someone Here"}</h1>
             <p className="mt-4 font-bold text-slate-500 dark:text-slate-400">
               {stage === 2 ? `This question will go directly to ${assignedTargetName}. They will answer it out loud.` : "Write something about another person at the party. Your question will be shown privately to someone else."}
@@ -530,6 +539,9 @@ export default function ParanoiaPage() {
             <p className="mt-5 text-sm font-black uppercase tracking-widest text-pink-500">
               {phaseLabel}
             </p>
+            {isCurrentPlayer && room.paranoia_current_player_id && (
+              <div className="mt-4 flex justify-center"><PlayerAvatar name={currentPlayerName} src={avatarUrls[room.paranoia_current_player_id]} size="md" /></div>
+            )}
 
             {isCurrentPlayer ? (
               <>
@@ -556,7 +568,9 @@ export default function ParanoiaPage() {
               </>
             ) : (
               <div className="mt-8 rounded-3xl bg-white dark:bg-slate-800 p-8 shadow-md">
-                <HelpCircle className="mx-auto h-12 w-12 text-sky-500 dark:text-sky-300" />
+                {room.paranoia_current_player_id && (
+                  <div className="flex justify-center"><PlayerAvatar name={currentPlayerName} src={avatarUrls[room.paranoia_current_player_id]} size="lg" /></div>
+                )}
                 <p className="mt-4 text-2xl font-black text-slate-800 dark:text-slate-100">
                   {currentPlayerName}'s turn
                 </p>

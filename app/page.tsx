@@ -1,13 +1,98 @@
 "use client";
 
-import { useState } from "react";
-import AvatarPicker from "@/components/AvatarPicker";
+import { useEffect, useRef, useState } from "react";
 import { uploadPlayerAvatar } from "@/lib/avatar-upload";
 import { useRouter } from "next/navigation";
-import { PartyPopper, Gamepad2, User, ArrowRight } from "lucide-react";
+import { PartyPopper, Gamepad2, User, ArrowRight, Camera, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ensureAnonymousUser } from "@/lib/auth";
 import UncoveredLogo from "@/components/UncoveredLogo";
+
+function HomeAvatarPicker({
+  file,
+  onChange,
+  disabled,
+}: {
+  file: File | null;
+  onChange: (file: File | null) => void;
+  disabled: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setPreview(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  function choosePhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const selected = event.target.files?.[0];
+    event.target.value = "";
+    if (!selected) return;
+
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(selected.type) ||
+      selected.size > 10 * 1024 * 1024
+    ) {
+      window.alert("Choose a JPG, PNG, or WebP image under 10 MB.");
+      return;
+    }
+
+    onChange(selected);
+  }
+
+  return (
+    <div className="mb-6 flex flex-col items-center gap-2">
+      <div className="relative">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => inputRef.current?.click()}
+          aria-label={file ? "Change profile photo" : "Add profile photo"}
+          title={file ? "Change photo" : "Add photo"}
+          className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-lg transition hover:scale-105 focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700"
+        >
+          {preview ? (
+            <img src={preview} alt="Selected profile photo" className="h-full w-full object-cover" />
+          ) : (
+            <Camera className="h-11 w-11" aria-hidden="true" />
+          )}
+        </button>
+
+        {file && (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(null)}
+            aria-label="Remove profile photo"
+            title="Remove photo"
+            className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-red-500 text-white shadow-md transition hover:bg-red-600 disabled:opacity-60 dark:border-slate-800"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      <p className="text-sm font-bold text-sky-700 dark:text-sky-300">
+        {file ? "Tap photo to change" : "Tap to add a photo (optional)"}
+      </p>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        disabled={disabled}
+        onChange={choosePhoto}
+        className="hidden"
+        aria-label="Choose profile photo"
+      />
+    </div>
+  );
+}
 
 function makeRoomCode() {
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -77,6 +162,18 @@ export default function Home() {
       if (playerError || !player) {
         setError(playerError?.message || "Could not add host.");
         return;
+      }
+
+      const { error: hostError } = await supabase
+        .from("rooms")
+        .update({
+          host_player_id: player.id,
+        })
+        .eq("id", room.id)
+        .eq("host_user_id", user.id);
+
+      if (hostError) {
+        throw new Error(hostError.message);
       }
 
       router.push(
@@ -175,6 +272,8 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 w-full max-w-md rounded-[36px] bg-white/70 dark:bg-slate-900/85 backdrop-blur-md border border-white/50 dark:border-slate-600/60 shadow-2xl p-6 md:p-8">
+        <HomeAvatarPicker file={avatarFile} onChange={setAvatarFile} disabled={isCreating || isJoining} />
+
         <div className="mb-5 flex items-center gap-4 rounded-3xl bg-white dark:bg-slate-800 px-5 py-4 shadow-md">
           <User className="h-6 w-6 text-emerald-400" />
 
@@ -185,8 +284,6 @@ export default function Home() {
             className="w-full bg-transparent text-lg text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
         </div>
-
-        <AvatarPicker file={avatarFile} onChange={setAvatarFile} disabled={isCreating || isJoining} />
 
         <button
           onClick={createRoom}
@@ -251,7 +348,7 @@ export default function Home() {
         )}
 
         <p className="mt-8 text-center text-sm font-medium text-sky-600 dark:text-sky-300">
-          Join your friends and have some fun 💙
+          Let's get uncovered!
         </p>
       </div>
     </main>
