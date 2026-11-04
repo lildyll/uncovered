@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Gamepad2, User, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Player } from "@/lib/types";
+import UncoveredLogo from "@/components/UncoveredLogo";
 
 type AvailableGame = "spicy" | "party" | "truth_or_dare" | "fool_me_once" | "paranoia";
 
@@ -211,15 +212,13 @@ export default function RoomPage() {
   }, [roomId, code, playerId, playerName, router]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 px-6 py-8">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 px-6 pt-2 pb-6">
       <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-col gap-6">
         <header className="text-center">
-          <h1 className="text-5xl font-black tracking-tight text-white drop-shadow-[0_6px_0_rgba(37,99,235,0.9)] md:text-7xl">
-            Uncovered
-          </h1>
+          <UncoveredLogo />
           <p className="mt-4 text-lg font-semibold text-sky-700">Waiting Room</p>
         </header>
 

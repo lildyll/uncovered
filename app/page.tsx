@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PartyPopper, Gamepad2, User, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ensureAnonymousUser } from "@/lib/auth";
+import UncoveredLogo from "@/components/UncoveredLogo";
 
 function makeRoomCode() {
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -153,15 +154,13 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 flex flex-col items-center px-6 py-10 relative">
+    <main className="min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 flex flex-col items-center px-6 pt-2 pb-6 relative">
       <div className="absolute top-20 left-10 w-32 h-32 bg-white/20 rounded-full blur-2xl" />
       <div className="absolute bottom-10 right-10 w-40 h-40 bg-cyan-200/30 rounded-full blur-3xl" />
       <div className="absolute top-1/3 right-0 w-24 h-24 bg-white/20 rounded-full blur-2xl" />
 
-      <div className="mt-6 mb-10 relative z-10">
-        <h1 className="text-6xl md:text-7xl font-black tracking-tight text-white drop-shadow-[0_6px_0_rgba(37,99,235,0.9)]">
-          Uncovered
-        </h1>
+      <div className="mt-0 mb-8 relative z-10">
+        <UncoveredLogo />
       </div>
 
       <div className="relative z-10 w-full max-w-md rounded-[36px] bg-white/70 backdrop-blur-md border border-white/50 shadow-2xl p-6 md:p-8">
