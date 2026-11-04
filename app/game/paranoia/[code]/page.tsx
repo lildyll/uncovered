@@ -487,7 +487,7 @@ export default function ParanoiaPage() {
           <>
             <p className="mt-6 text-sm font-black uppercase tracking-widest text-violet-500">{stage === 2 ? "Round 2 — Targeted" : "Round 1 — Classic"}</p>
             {stage === 2 && assignedTargetId && (
-              <div className="mt-5 flex justify-center"><PlayerAvatar name={assignedTargetName} src={avatarUrls[assignedTargetId]} size="lg" /></div>
+              <div className="mt-5 flex justify-center"><PlayerAvatar name={assignedTargetName} src={avatarUrls[assignedTargetId]} size="md" /></div>
             )}
             <h1 className="mt-3 text-4xl font-black text-slate-800 dark:text-slate-100">{stage === 2 ? `Write a Question for ${assignedTargetName}` : "A Question About Someone Here"}</h1>
             <p className="mt-4 font-bold text-slate-500 dark:text-slate-400">
@@ -569,7 +569,7 @@ export default function ParanoiaPage() {
             ) : (
               <div className="mt-8 rounded-3xl bg-white dark:bg-slate-800 p-8 shadow-md">
                 {room.paranoia_current_player_id && (
-                  <div className="flex justify-center"><PlayerAvatar name={currentPlayerName} src={avatarUrls[room.paranoia_current_player_id]} size="lg" /></div>
+                  <div className="flex justify-center"><PlayerAvatar name={currentPlayerName} src={avatarUrls[room.paranoia_current_player_id]} size="md" /></div>
                 )}
                 <p className="mt-4 text-2xl font-black text-slate-800 dark:text-slate-100">
                   {currentPlayerName}'s turn
