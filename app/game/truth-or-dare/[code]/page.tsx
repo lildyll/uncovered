@@ -622,7 +622,7 @@ export default function TruthOrDarePage() {
 
   if (!room) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 p-6">
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 p-6">
         <p className="text-2xl font-black text-white">{error || "Loading..."}</p>
       </main>
     );
@@ -632,15 +632,15 @@ export default function TruthOrDarePage() {
   const setupStage = room.truth_or_dare_stage;
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 p-6">
-      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 p-6">
+      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 dark:bg-white/10 blur-2xl" />
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
       {room && <HostMenu roomId={room.id} game="truth_or_dare" isHost={isHost} />}
-      <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 bg-white/70 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
+      <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
         <div className="flex items-center justify-center gap-2">
           <Sparkles className="h-7 w-7 text-violet-500" />
-          <p className="text-sm font-black uppercase tracking-widest text-sky-600">Truth or Dare</p>
+          <p className="text-sm font-black uppercase tracking-widest text-sky-600 dark:text-sky-300">Truth or Dare</p>
         </div>
 
         {isSetup && (
@@ -661,7 +661,7 @@ export default function TruthOrDarePage() {
                         ? "bg-emerald-400 text-white"
                         : active
                           ? "bg-violet-500 text-white"
-                          : "bg-white text-slate-400"
+                          : "bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-400"
                     }`}
                   >
                     {complete ? <Check className="h-5 w-5" /> : index + 1}
@@ -670,21 +670,21 @@ export default function TruthOrDarePage() {
               })}
             </div>
 
-            <h1 className="mt-6 text-4xl font-black text-slate-800">
+            <h1 className="mt-6 text-4xl font-black text-slate-800 dark:text-slate-100">
               {getSetupTitle(setupStage)}
             </h1>
-            <p className="mt-3 font-bold text-slate-500">
+            <p className="mt-3 font-bold text-slate-500 dark:text-slate-400">
               {getSetupDescription(setupStage)}
             </p>
-            <p className="mt-4 text-sm font-black uppercase tracking-wide text-sky-600">
+            <p className="mt-4 text-sm font-black uppercase tracking-wide text-sky-600 dark:text-sky-300">
               {setupSubmittedCount} / {players.length} submitted
             </p>
 
             {hasSubmittedSetup ? (
-              <div className="mt-8 rounded-3xl bg-emerald-50 p-7">
+              <div className="mt-8 rounded-3xl bg-emerald-50 dark:bg-emerald-950/70 p-7">
                 <Check className="mx-auto h-12 w-12 text-emerald-500" />
-                <p className="mt-3 text-2xl font-black text-emerald-700">Submitted!</p>
-                <p className="mt-2 font-bold text-slate-500">Waiting for everyone else...</p>
+                <p className="mt-3 text-2xl font-black text-emerald-700 dark:text-emerald-300">Submitted!</p>
+                <p className="mt-2 font-bold text-slate-500 dark:text-slate-400">Waiting for everyone else...</p>
               </div>
             ) : (
               <>
@@ -699,16 +699,16 @@ export default function TruthOrDarePage() {
                         ? "Throw it back crazy style"
                         : "Who is the finest one here?"
                   }
-                  className="mt-8 w-full rounded-3xl bg-white p-5 text-lg font-bold text-slate-800 shadow-md outline-none ring-violet-200 placeholder:text-slate-400 focus:ring-4"
+                  className="mt-8 w-full rounded-3xl bg-white dark:bg-slate-800 p-5 text-lg font-bold text-slate-800 dark:text-slate-100 shadow-md outline-none ring-violet-200 dark:ring-violet-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-4"
                 />
 
                 {setupStage !== "everyone" && (
                   <div className="mt-5 text-left">
-                    <label className="mb-2 block font-black text-slate-600">This is for:</label>
+                    <label className="mb-2 block font-black text-slate-600 dark:text-slate-300">This is for:</label>
                     <select
                       value={targetPlayerId}
                       onChange={(event) => setTargetPlayerId(event.target.value)}
-                      className="w-full rounded-2xl bg-white px-4 py-4 text-lg font-bold text-slate-800 shadow-md outline-none"
+                      className="w-full rounded-2xl bg-white dark:bg-slate-800 px-4 py-4 text-lg font-bold text-slate-800 dark:text-slate-100 shadow-md outline-none"
                     >
                       <option value="">Choose a player</option>
                       {targetOptions.map((player) => (
@@ -744,18 +744,18 @@ export default function TruthOrDarePage() {
 
         {!isSetup && currentItem && (
           <>
-            <p className="mt-4 text-sm font-black uppercase tracking-wide text-slate-400">
+            <p className="mt-4 text-sm font-black uppercase tracking-wide text-slate-400 dark:text-slate-400">
               {room.current_round} / {room.truth_or_dare_item_order.length}
             </p>
 
             {currentItem.type === "truth" && (
               <>
-                <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-blue-100 px-5 py-2 font-black uppercase tracking-widest text-blue-700">
+                <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-950 px-5 py-2 font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">
                   <MessageCircleQuestion className="h-5 w-5" /> Truth
                 </div>
 
                 <div
-                  className={`mt-6 rounded-3xl bg-white p-7 shadow-lg transition-all duration-500 ${
+                  className={`mt-6 rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-lg transition-all duration-500 ${
                     showQuestionCard
                       ? "scale-100 opacity-100"
                       : "scale-90 opacity-0"
@@ -764,7 +764,7 @@ export default function TruthOrDarePage() {
                   <p className="text-lg font-black uppercase tracking-wide text-blue-500">
                     {targetPlayer}
                   </p>
-                  <h1 className="mt-3 text-4xl font-black leading-tight text-slate-800">
+                  <h1 className="mt-3 text-4xl font-black leading-tight text-slate-800 dark:text-slate-100">
                     {currentItem.prompt}
                   </h1>
                 </div>
@@ -773,12 +773,12 @@ export default function TruthOrDarePage() {
 
             {currentItem.type === "dare" && (
               <>
-                <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-rose-100 px-5 py-2 font-black uppercase tracking-widest text-rose-700">
+                <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-rose-100 dark:bg-rose-950 px-5 py-2 font-black uppercase tracking-widest text-rose-700 dark:text-rose-300">
                   <Flame className="h-5 w-5" /> Dare
                 </div>
 
                 <div
-                  className={`mt-6 rounded-3xl bg-white p-7 shadow-lg transition-all duration-500 ${
+                  className={`mt-6 rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-lg transition-all duration-500 ${
                     showQuestionCard
                       ? "scale-100 opacity-100"
                       : "scale-90 opacity-0"
@@ -787,7 +787,7 @@ export default function TruthOrDarePage() {
                   <p className="text-lg font-black uppercase tracking-wide text-rose-500">
                     {targetPlayer}
                   </p>
-                  <h1 className="mt-3 text-4xl font-black leading-tight text-slate-800">
+                  <h1 className="mt-3 text-4xl font-black leading-tight text-slate-800 dark:text-slate-100">
                     {currentItem.prompt}
                   </h1>
                 </div>
@@ -796,17 +796,17 @@ export default function TruthOrDarePage() {
 
             {currentItem.type === "everyone" && (
               <>
-                <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-violet-100 px-5 py-2 font-black uppercase tracking-widest text-violet-700">
+                <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-violet-100 dark:bg-violet-950 px-5 py-2 font-black uppercase tracking-widest text-violet-700 dark:text-violet-300">
                   <HelpCircle className="h-5 w-5" /> Everyone
                 </div>
                 <div
-                  className={`mt-6 rounded-3xl bg-white p-7 shadow-lg transition-all duration-500 ${
+                  className={`mt-6 rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-lg transition-all duration-500 ${
                     showQuestionCard
                       ? "scale-100 opacity-100"
                       : "scale-90 opacity-0"
                   }`}
                 >
-                  <h1 className="text-4xl font-black leading-tight text-slate-800">
+                  <h1 className="text-4xl font-black leading-tight text-slate-800 dark:text-slate-100">
                     {currentItem.prompt}
                   </h1>
                 </div>
@@ -814,10 +814,10 @@ export default function TruthOrDarePage() {
                 {showQuestionCard && room.game_phase === "question" && (
                   <>
                     {hasAnswered ? (
-                      <div className="mt-8 rounded-3xl bg-emerald-50 p-6">
+                      <div className="mt-8 rounded-3xl bg-emerald-50 dark:bg-emerald-950/70 p-6">
                         <Check className="mx-auto h-10 w-10 text-emerald-500" />
-                        <p className="mt-3 font-black text-emerald-700">Answer submitted</p>
-                        <p className="mt-1 font-bold text-slate-500">Waiting for everyone else...</p>
+                        <p className="mt-3 font-black text-emerald-700 dark:text-emerald-300">Answer submitted</p>
+                        <p className="mt-1 font-bold text-slate-500 dark:text-slate-400">Waiting for everyone else...</p>
                       </div>
                     ) : (
                       <>
@@ -826,7 +826,7 @@ export default function TruthOrDarePage() {
                           onChange={(event) => setAnswerText(event.target.value)}
                           rows={4}
                           placeholder="Type your answer..."
-                          className="mt-8 w-full rounded-3xl bg-white p-5 text-lg font-bold text-slate-800 shadow-md outline-none ring-violet-200 placeholder:text-slate-400 focus:ring-4"
+                          className="mt-8 w-full rounded-3xl bg-white dark:bg-slate-800 p-5 text-lg font-bold text-slate-800 dark:text-slate-100 shadow-md outline-none ring-violet-200 dark:ring-violet-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-4"
                         />
                         <button
                           type="button"
@@ -860,17 +860,17 @@ export default function TruthOrDarePage() {
                         {revealedAnswers.map((answer, index) => (
                           <div
                             key={answer.playerId}
-                            className="rounded-3xl bg-white p-5 text-left shadow-md"
+                            className="rounded-3xl bg-white dark:bg-slate-800 p-5 text-left shadow-md"
                           >
                             <div className="flex items-start gap-4">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-violet-400 to-pink-400 font-black text-white">
                                 {index + 1}
                               </div>
                               <div>
-                                <p className="font-black text-violet-600">
+                                <p className="font-black text-violet-600 dark:text-violet-300">
                                   {answer.playerName}
                                 </p>
-                                <p className="mt-1 text-lg font-bold text-slate-700">
+                                <p className="mt-1 text-lg font-bold text-slate-700 dark:text-slate-200">
                                   {answer.answer}
                                 </p>
                               </div>
@@ -880,12 +880,12 @@ export default function TruthOrDarePage() {
                       </div>
                     ) : (
                       <div className="mt-8 space-y-4">
-                        <div className="rounded-3xl bg-slate-100 p-5 shadow-md">
-                          <p className="text-sm font-black uppercase tracking-widest text-slate-400">
+                        <div className="rounded-3xl bg-slate-100 dark:bg-slate-700 p-5 shadow-md">
+                          <p className="text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-400">
                             Anonymous Answers
                           </p>
 
-                          <p className="mt-1 text-xl font-black text-slate-700">
+                          <p className="mt-1 text-xl font-black text-slate-700 dark:text-slate-200">
                             Answeres are revealed, but the author is hidden.
                           </p>
                         </div>
@@ -893,7 +893,7 @@ export default function TruthOrDarePage() {
                         {revealedAnswers.map((answer, index) => (
                           <div
                             key={`${answer.playerId}-${index}`}
-                            className="rounded-3xl bg-white p-5 text-left shadow-md"
+                            className="rounded-3xl bg-white dark:bg-slate-800 p-5 text-left shadow-md"
                           >
                             <div className="flex items-start gap-4">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-500 font-black text-white">
@@ -901,11 +901,11 @@ export default function TruthOrDarePage() {
                               </div>
 
                               <div>
-                                <p className="text-sm font-black uppercase tracking-wide text-slate-400">
+                                <p className="text-sm font-black uppercase tracking-wide text-slate-400 dark:text-slate-400">
                                   Anonymous
                                 </p>
 
-                                <p className="mt-1 text-lg font-bold text-slate-700">
+                                <p className="mt-1 text-lg font-bold text-slate-700 dark:text-slate-200">
                                   {answer.answer}
                                 </p>
                               </div>
@@ -934,7 +934,7 @@ export default function TruthOrDarePage() {
                     </span>
                   </button>
                 ) : (
-                  <p className="mt-9 text-lg font-bold text-sky-700">Waiting for the host to continue...</p>
+                  <p className="mt-9 text-lg font-bold text-sky-700 dark:text-sky-300">Waiting for the host to continue...</p>
                 )}
               </>
             )}
@@ -954,7 +954,7 @@ export default function TruthOrDarePage() {
                     </span>
                   </button>
                 ) : (
-                  <p className="mt-8 text-lg font-bold text-sky-700">Waiting for the host to continue...</p>
+                  <p className="mt-8 text-lg font-bold text-sky-700 dark:text-sky-300">Waiting for the host to continue...</p>
                 )}
               </>
             )}
@@ -962,7 +962,7 @@ export default function TruthOrDarePage() {
         )}
 
         {error && <p className="mt-5 font-bold text-red-500">{error}</p>}
-        <p className="mt-6 text-sm font-semibold text-slate-400">Playing as {playerName}</p>
+        <p className="mt-6 text-sm font-semibold text-slate-400 dark:text-slate-400">Playing as {playerName}</p>
       </section>
     </main>
   );

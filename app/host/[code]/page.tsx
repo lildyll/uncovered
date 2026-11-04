@@ -333,54 +333,54 @@ export default function HostPage() {
   }, [roomId, code, hostName, playerId, router]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 px-6 pt-2 pb-6">
-      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 px-6 pt-2 pb-6">
+      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 dark:bg-white/10 blur-2xl" />
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-6">
         <header className="text-center">
           <UncoveredLogo />
-          <p className="mt-4 text-lg font-semibold text-sky-700">Host Lobby</p>
+          <p className="mt-4 text-lg font-semibold text-sky-700 dark:text-sky-300">Host Lobby</p>
         </header>
 
         <section className="grid gap-6 md:grid-cols-[1fr_1.2fr]">
-          <div className="rounded-[36px] border border-white/50 bg-white/70 p-6 shadow-2xl backdrop-blur-md">
+          <div className="rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-6 shadow-2xl backdrop-blur-md">
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-sky-400 shadow-lg">
                 <Crown className="h-7 w-7 text-white" />
               </div>
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-sky-500">Host</p>
-                <h2 className="text-3xl font-black text-slate-800">{hostName}</h2>
+                <p className="text-sm font-bold uppercase tracking-wide text-sky-500 dark:text-sky-300">Host</p>
+                <h2 className="text-3xl font-black text-slate-800 dark:text-slate-100">{hostName}</h2>
               </div>
             </div>
 
-            <div className="mt-6 rounded-3xl bg-white p-5 text-center shadow-md">
-              <p className="text-sm font-bold uppercase tracking-wide text-sky-500">Room Code</p>
+            <div className="mt-6 rounded-3xl bg-white dark:bg-slate-800 p-5 text-center shadow-md">
+              <p className="text-sm font-bold uppercase tracking-wide text-sky-500 dark:text-sky-300">Room Code</p>
               <p className="mt-2 text-5xl font-black tracking-widest text-blue-500">{code}</p>
             </div>
 
-            <div className="mt-6 rounded-3xl bg-white p-5 shadow-md">
+            <div className="mt-6 rounded-3xl bg-white dark:bg-slate-800 p-5 shadow-md">
               <div className="mb-4 flex items-center gap-3">
                 <Users className="h-6 w-6 text-emerald-400" />
-                <h3 className="text-xl font-black text-slate-800">Players Joined</h3>
+                <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">Players Joined</h3>
               </div>
 
               <div className="space-y-3">
                 {players.map((player, index) => (
                   <div
                     key={player.id}
-                    className="flex items-center justify-between rounded-2xl bg-sky-50 px-4 py-3"
+                    className="flex items-center justify-between rounded-2xl bg-sky-50 dark:bg-slate-800/80 px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-500 font-bold text-white">
                         {index + 1}
                       </div>
-                      <p className="font-bold text-slate-700">{player.name}</p>
+                      <p className="font-bold text-slate-700 dark:text-slate-200">{player.name}</p>
                     </div>
 
                     {player.id === playerId ? (
-                      <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-700">
+                      <span className="rounded-full bg-yellow-100 dark:bg-amber-950 px-3 py-1 text-xs font-bold text-yellow-700 dark:text-yellow-300">
                         Host
                       </span>
                     ) : (
@@ -390,7 +390,7 @@ export default function HostPage() {
                         title={`Remove ${player.name}`}
                         onClick={() => kickPlayer(player)}
                         disabled={Boolean(kickingPlayerId) || isStarting}
-                        className="rounded-xl bg-red-100 p-2 text-red-600 transition hover:bg-red-200 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="rounded-xl bg-red-100 dark:bg-red-950 p-2 text-red-600 dark:text-red-300 transition hover:bg-red-200 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <X className="h-5 w-5" />
                       </button>
@@ -401,10 +401,10 @@ export default function HostPage() {
             </div>
           </div>
 
-          <div className="rounded-[36px] border border-white/50 bg-white/70 p-6 shadow-2xl backdrop-blur-md">
+          <div className="rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-6 shadow-2xl backdrop-blur-md">
             <div className="mb-5 flex items-center gap-3">
               <Gamepad2 className="h-7 w-7 text-violet-400" />
-              <h2 className="text-3xl font-black text-slate-800">Choose a Game</h2>
+              <h2 className="text-3xl font-black text-slate-800 dark:text-slate-100">Choose a Game</h2>
             </div>
 
             <div className="grid gap-4">
@@ -420,13 +420,13 @@ export default function HostPage() {
                     className={`rounded-3xl p-5 text-left shadow-md transition hover:scale-[1.01] ${
                       isSelected
                         ? "bg-gradient-to-r from-blue-500 to-sky-400 text-white"
-                        : "bg-white text-slate-700"
+                        : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
                     }`}
                   >
                     <div className="flex items-center gap-4">
                       <div
                         className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
-                          isSelected ? "bg-white/20" : "bg-sky-100"
+                          isSelected ? "bg-white/20 dark:bg-white/10" : "bg-sky-100 dark:bg-slate-700"
                         }`}
                       >
                         <Icon className={`h-7 w-7 ${isSelected ? "text-white" : "text-blue-500"}`} />
@@ -434,7 +434,7 @@ export default function HostPage() {
 
                       <div>
                         <h3 className="text-2xl font-black">{game.name}</h3>
-                        <p className={`text-sm font-medium ${isSelected ? "text-white/80" : "text-slate-400"}`}>
+                        <p className={`text-sm font-medium ${isSelected ? "text-white/80" : "text-slate-400 dark:text-slate-400"}`}>
                           {game.description}
                         </p>
                       </div>
@@ -451,7 +451,7 @@ export default function HostPage() {
               className={`mt-6 w-full rounded-3xl py-5 text-2xl font-bold shadow-lg transition ${
                 canStart && !isStarting
                   ? "bg-gradient-to-r from-emerald-400 to-green-400 text-white hover:scale-[1.02]"
-                  : "cursor-not-allowed bg-slate-200 text-slate-400"
+                  : "cursor-not-allowed bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-400"
               }`}
             >
               <span className="flex items-center justify-center gap-3">

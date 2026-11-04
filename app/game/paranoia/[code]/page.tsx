@@ -458,42 +458,42 @@ export default function ParanoiaPage() {
 
   if (!room) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 p-6">
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 p-6">
         <p className="text-2xl font-black text-white">{error || "Loading..."}</p>
       </main>
     );
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 p-6">
-      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 p-6">
+      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 dark:bg-white/10 blur-2xl" />
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
       {room && <HostMenu roomId={room.id} game="paranoia" isHost={isHost} />}
-      <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 bg-white/70 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
+      <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
         <style dangerouslySetInnerHTML={{ __html: coinStyles }} />
         <div className="flex items-center justify-center gap-2">
           <Sparkles className="h-7 w-7 text-violet-500" />
-          <p className="text-sm font-black uppercase tracking-widest text-sky-600">Paranoia</p>
+          <p className="text-sm font-black uppercase tracking-widest text-sky-600 dark:text-sky-300">Paranoia</p>
         </div>
 
         {room.paranoia_phase === "setup" && (
           <>
             <p className="mt-6 text-sm font-black uppercase tracking-widest text-violet-500">{stage === 2 ? "Round 2 — Targeted" : "Round 1 — Classic"}</p>
-            <h1 className="mt-3 text-4xl font-black text-slate-800">{stage === 2 ? `Write a Question for ${assignedTargetName}` : "A Question About Someone Here"}</h1>
-            <p className="mt-4 font-bold text-slate-500">
+            <h1 className="mt-3 text-4xl font-black text-slate-800 dark:text-slate-100">{stage === 2 ? `Write a Question for ${assignedTargetName}` : "A Question About Someone Here"}</h1>
+            <p className="mt-4 font-bold text-slate-500 dark:text-slate-400">
               {stage === 2 ? `This question will go directly to ${assignedTargetName}. They will answer it out loud.` : "Write something about another person at the party. Your question will be shown privately to someone else."}
             </p>
 
-            <p className="mt-5 text-sm font-black uppercase tracking-wide text-sky-600">
+            <p className="mt-5 text-sm font-black uppercase tracking-wide text-sky-600 dark:text-sky-300">
               {submittedCount} / {players.length} submitted
             </p>
 
             {hasSubmitted ? (
-              <div className="mt-8 rounded-3xl bg-emerald-50 p-7">
+              <div className="mt-8 rounded-3xl bg-emerald-50 dark:bg-emerald-950/70 p-7">
                 <Sparkles className="mx-auto h-12 w-12 text-emerald-500" />
-                <p className="mt-3 text-2xl font-black text-emerald-700">Question locked in!</p>
-                <p className="mt-2 font-bold text-slate-500">Waiting for everyone else...</p>
+                <p className="mt-3 text-2xl font-black text-emerald-700 dark:text-emerald-300">Question locked in!</p>
+                <p className="mt-2 font-bold text-slate-500 dark:text-slate-400">Waiting for everyone else...</p>
               </div>
             ) : (
               <>
@@ -502,7 +502,7 @@ export default function ParanoiaPage() {
                   onChange={(event) => setQuestionText(event.target.value)}
                   rows={5}
                   placeholder="Who is the most annoying person here?"
-                  className="mt-8 w-full rounded-3xl bg-white p-5 text-lg font-bold text-slate-800 shadow-md outline-none ring-violet-200 placeholder:text-slate-400 focus:ring-4"
+                  className="mt-8 w-full rounded-3xl bg-white dark:bg-slate-800 p-5 text-lg font-bold text-slate-800 dark:text-slate-100 shadow-md outline-none ring-violet-200 dark:ring-violet-700 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-4"
                 />
 
                 <button
@@ -523,7 +523,7 @@ export default function ParanoiaPage() {
 
         {room.paranoia_phase === "turn" && currentQuestion && (
           <>
-            <p className="mt-5 text-sm font-black uppercase tracking-wide text-slate-400">
+            <p className="mt-5 text-sm font-black uppercase tracking-wide text-slate-400 dark:text-slate-400">
               Round {stage} · Turn {room.current_round} / {room.paranoia_turn_order.length}
             </p>
 
@@ -533,13 +533,13 @@ export default function ParanoiaPage() {
 
             {isCurrentPlayer ? (
               <>
-                <div className="mt-7 rounded-3xl bg-violet-50 p-7 shadow-md">
+                <div className="mt-7 rounded-3xl bg-violet-50 dark:bg-violet-950/70 p-7 shadow-md">
                   <Eye className="mx-auto h-12 w-12 text-violet-500" />
                   <p className="mt-3 text-sm font-black uppercase tracking-widest text-violet-500">Only You Can See This</p>
-                  <h1 className="mt-4 text-4xl font-black leading-tight text-slate-800">
+                  <h1 className="mt-4 text-4xl font-black leading-tight text-slate-800 dark:text-slate-100">
                     {currentQuestion.question}
                   </h1>
-                  <p className="mt-4 font-bold text-slate-500">Answer out loud without saying the question.</p>
+                  <p className="mt-4 font-bold text-slate-500 dark:text-slate-400">Answer out loud without saying the question.</p>
                 </div>
 
                 <button
@@ -555,12 +555,12 @@ export default function ParanoiaPage() {
                 </button>
               </>
             ) : (
-              <div className="mt-8 rounded-3xl bg-white p-8 shadow-md">
-                <HelpCircle className="mx-auto h-12 w-12 text-sky-500" />
-                <p className="mt-4 text-2xl font-black text-slate-800">
+              <div className="mt-8 rounded-3xl bg-white dark:bg-slate-800 p-8 shadow-md">
+                <HelpCircle className="mx-auto h-12 w-12 text-sky-500 dark:text-sky-300" />
+                <p className="mt-4 text-2xl font-black text-slate-800 dark:text-slate-100">
                   {currentPlayerName}'s turn
                 </p>
-                <p className="mt-2 font-bold text-slate-500">They have a private question.</p>
+                <p className="mt-2 font-bold text-slate-500 dark:text-slate-400">They have a private question.</p>
               </div>
             )}
           </>
@@ -568,7 +568,7 @@ export default function ParanoiaPage() {
 
         {room.paranoia_phase === "reveal" && currentQuestion && (
           <>
-            <p className="mt-5 text-sm font-black uppercase tracking-wide text-slate-400">
+            <p className="mt-5 text-sm font-black uppercase tracking-wide text-slate-400 dark:text-slate-400">
               Round {stage} · Turn {room.current_round} / {room.paranoia_turn_order.length}
             </p>
 
@@ -582,15 +582,15 @@ export default function ParanoiaPage() {
                     <span>TAILS</span>
                   </div>
                 </div>
-                <p className="mt-6 text-xl font-black text-slate-700">
+                <p className="mt-6 text-xl font-black text-slate-700 dark:text-slate-200">
                   {isSpinning ? "Flipping the coin..." : "The coin decides..."}
                 </p>
               </div>
             ) : room.paranoia_reveal ? (
               <div className="mt-8">
                 <p className="text-sm font-black uppercase tracking-widest text-emerald-500">HEADS — REVEALED</p>
-                <div className="mt-5 rounded-[32px] bg-white p-7 shadow-xl">
-                  <h1 className="text-3xl font-black leading-tight text-slate-800 md:text-4xl">
+                <div className="mt-5 rounded-[32px] bg-white dark:bg-slate-800 p-7 shadow-xl">
+                  <h1 className="text-3xl font-black leading-tight text-slate-800 dark:text-slate-100 md:text-4xl">
                     {currentQuestion.question}
                   </h1>
                 </div>
@@ -614,7 +614,7 @@ export default function ParanoiaPage() {
                 </span>
               </button>
             ) : showRevealResult ? (
-              <p className="mt-8 text-lg font-bold text-sky-700">
+              <p className="mt-8 text-lg font-bold text-sky-700 dark:text-sky-300">
                 Waiting for the host to continue...
               </p>
             ) : null}
@@ -625,7 +625,7 @@ export default function ParanoiaPage() {
           <p className="mt-6 rounded-2xl bg-red-50 p-3 font-bold text-red-500">{error}</p>
         )}
 
-        <p className="mt-7 text-sm font-semibold text-slate-400">
+        <p className="mt-7 text-sm font-semibold text-slate-400 dark:text-slate-400">
           Playing as {playerName}
         </p>
       </section>

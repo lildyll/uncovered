@@ -106,7 +106,7 @@ function AnimatedPercentage({
         {displayPercent}%
       </p>
 
-      <div className="mt-3 h-5 overflow-hidden rounded-full bg-sky-100">
+      <div className="mt-3 h-5 overflow-hidden rounded-full bg-sky-100 dark:bg-slate-700">
         <div
           className={`h-full rounded-full transition-[width] duration-700 ease-out ${barClassName}`}
           style={{
@@ -924,7 +924,7 @@ export default function PartyGamePage() {
 
   if (!room) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 p-6">
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 p-6">
         <p className="text-2xl font-black text-white">
           {error || "Loading..."}
         </p>
@@ -933,12 +933,12 @@ export default function PartyGamePage() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 p-6">
-      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 p-6">
+      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 dark:bg-white/10 blur-2xl" />
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
       {room && <HostMenu roomId={room.id} game="party" isHost={isHost} />}
-      <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 bg-white/70 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
+      <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
         <div className="flex items-center justify-center gap-2">
           {room.current_question_type ===
           "how_many_shots" ? (
@@ -953,14 +953,14 @@ export default function PartyGamePage() {
             <PartyPopper className="h-7 w-7 text-pink-500" />
           )}
 
-          <p className="text-sm font-black uppercase tracking-widest text-sky-600">
+          <p className="text-sm font-black uppercase tracking-widest text-sky-600 dark:text-sky-300">
             {modeLabel}
           </p>
         </div>
 
         {room.game_phase !==
           "finished" && (
-          <p className="mt-3 font-bold text-slate-500">
+          <p className="mt-3 font-bold text-slate-500 dark:text-slate-400">
             Round {room.current_round} /{" "}
             {PARTY_TOTAL_ROUNDS}
           </p>
@@ -969,7 +969,7 @@ export default function PartyGamePage() {
         {room.game_phase ===
           "question" && (
           <>
-            <h1 className="mt-6 text-3xl font-black leading-tight text-slate-800 md:text-4xl">
+            <h1 className="mt-6 text-3xl font-black leading-tight text-slate-800 dark:text-slate-100 md:text-4xl">
               {room.current_question}
             </h1>
 
@@ -1026,12 +1026,12 @@ export default function PartyGamePage() {
 
             {room.current_question_type ===
               "how_many_shots" && (
-              <div className="mt-10 rounded-3xl bg-white p-6 shadow-md">
+              <div className="mt-10 rounded-3xl bg-white dark:bg-slate-800 p-6 shadow-md">
                 <p className="text-6xl font-black text-rose-500">
                   {displayScaleValue(shotValue)}
                 </p>
 
-                <p className="mt-2 font-bold text-slate-500">
+                <p className="mt-2 font-bold text-slate-500 dark:text-slate-400">
                   {isShotsQuestion ? (shotValue === 1 ? "shot" : "shots") : ""}
                 </p>
 
@@ -1056,7 +1056,7 @@ export default function PartyGamePage() {
                   className="mt-8 w-full accent-rose-500"
                 />
 
-                <div className="mt-2 flex justify-between text-sm font-black text-slate-400">
+                <div className="mt-2 flex justify-between text-sm font-black text-slate-400 dark:text-slate-400">
                   <span>0</span>
                   <span>5</span>
                   <span>10+</span>
@@ -1085,7 +1085,7 @@ export default function PartyGamePage() {
             {room.current_question_type ===
               "most_likely" && (
               <div className="mt-8">
-                <p className="mb-4 text-sm font-black uppercase tracking-wide text-slate-500">
+                <p className="mb-4 text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   Most likely
                 </p>
 
@@ -1094,13 +1094,13 @@ export default function PartyGamePage() {
                     (rankedId, index) => (
                       <div
                         key={rankedId}
-                        className="flex items-center gap-3 rounded-3xl bg-white p-4 shadow-md"
+                        className="flex items-center gap-3 rounded-3xl bg-white dark:bg-slate-800 p-4 shadow-md"
                       >
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-500 font-black text-white">
                           {index + 1}
                         </div>
 
-                        <p className="min-w-0 flex-1 truncate text-left text-xl font-black text-slate-800">
+                        <p className="min-w-0 flex-1 truncate text-left text-xl font-black text-slate-800 dark:text-slate-100">
                           {playerMap.get(
                             rankedId
                           ) || "Player"}
@@ -1121,7 +1121,7 @@ export default function PartyGamePage() {
                               -1
                             )
                           }
-                          className="rounded-2xl bg-sky-100 p-3 text-sky-700 disabled:opacity-30"
+                          className="rounded-2xl bg-sky-100 dark:bg-slate-700 p-3 text-sky-700 dark:text-sky-300 disabled:opacity-30"
                         >
                           <ArrowUp className="h-5 w-5" />
                         </button>
@@ -1143,7 +1143,7 @@ export default function PartyGamePage() {
                               1
                             )
                           }
-                          className="rounded-2xl bg-pink-100 p-3 text-pink-700 disabled:opacity-30"
+                          className="rounded-2xl bg-pink-100 dark:bg-pink-950 p-3 text-pink-700 dark:text-pink-300 disabled:opacity-30"
                         >
                           <ArrowDown className="h-5 w-5" />
                         </button>
@@ -1152,7 +1152,7 @@ export default function PartyGamePage() {
                   )}
                 </div>
 
-                <p className="mt-4 text-sm font-black uppercase tracking-wide text-slate-500">
+                <p className="mt-4 text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   Least likely
                 </p>
 
@@ -1181,7 +1181,7 @@ export default function PartyGamePage() {
             )}
 
             {selectedAnswer && (
-              <p className="mt-6 text-lg font-bold text-sky-700">
+              <p className="mt-6 text-lg font-bold text-sky-700 dark:text-sky-300">
                 Answer locked in.
                 Waiting for everyone
                 else...
@@ -1205,17 +1205,17 @@ export default function PartyGamePage() {
                 </p>
               </div>
             ) : (
-              <p className="mt-5 text-sm font-bold text-slate-400">
+              <p className="mt-5 text-sm font-bold text-slate-400 dark:text-slate-400">
                 Responses are anonymous
                 this round
               </p>
             )}
 
-            <p className="mt-6 text-sm font-black uppercase tracking-wide text-sky-500">
+            <p className="mt-6 text-sm font-black uppercase tracking-wide text-sky-500 dark:text-sky-300">
               Results
             </p>
 
-            <h1 className="mt-3 text-3xl font-black leading-tight text-slate-800 md:text-4xl">
+            <h1 className="mt-3 text-3xl font-black leading-tight text-slate-800 dark:text-slate-100 md:text-4xl">
               {room.current_question}
             </h1>
 
@@ -1230,10 +1230,10 @@ export default function PartyGamePage() {
                   (result, index) => (
                     <div
                       key={result.answer}
-                      className="rounded-3xl bg-white p-5 shadow-md"
+                      className="rounded-3xl bg-white dark:bg-slate-800 p-5 shadow-md"
                     >
                       <div className="mb-3 flex items-start justify-between gap-4">
-                        <p className="flex-1 text-left text-xl font-black text-slate-800 md:text-2xl">
+                        <p className="flex-1 text-left text-xl font-black text-slate-800 dark:text-slate-100 md:text-2xl">
                           {result.answer}
                         </p>
 
@@ -1250,7 +1250,7 @@ export default function PartyGamePage() {
                         </div>
                       </div>
 
-                      <p className="mt-2 text-sm font-bold text-slate-400">
+                      <p className="mt-2 text-sm font-bold text-slate-400 dark:text-slate-400">
                         {result.count} vote
                         {result.count === 1
                           ? ""
@@ -1263,7 +1263,7 @@ export default function PartyGamePage() {
                             (voter) => (
                               <span
                                 key={voter}
-                                className="rounded-full bg-pink-100 px-4 py-2 text-sm font-black text-pink-700"
+                                className="rounded-full bg-pink-100 dark:bg-pink-950 px-4 py-2 text-sm font-black text-pink-700 dark:text-pink-300"
                               >
                                 {voter}
                               </span>
@@ -1280,8 +1280,8 @@ export default function PartyGamePage() {
             {room.current_question_type ===
               "how_many_shots" && (
               <div className="mt-8">
-                <div className="rounded-3xl bg-white p-7 shadow-md">
-                  <p className="text-sm font-black uppercase tracking-wide text-slate-400">
+                <div className="rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-md">
+                  <p className="text-sm font-black uppercase tracking-wide text-slate-400 dark:text-slate-400">
                     Average
                   </p>
                   <p className="break-words text-4xl font-black text-rose-500 md:text-6xl">
@@ -1290,7 +1290,7 @@ export default function PartyGamePage() {
                       : shotAverage.toFixed(1)}
                   </p>
                   {isShotsQuestion && (
-                    <p className="mt-2 font-bold text-slate-500">shots</p>
+                    <p className="mt-2 font-bold text-slate-500 dark:text-slate-400">shots</p>
                   )}
                 </div>
 
@@ -1300,9 +1300,9 @@ export default function PartyGamePage() {
                       (vote) => (
                         <div
                           key={vote.voter}
-                          className="flex items-center justify-between rounded-3xl bg-white px-5 py-4 shadow-md"
+                          className="flex items-center justify-between rounded-3xl bg-white dark:bg-slate-800 px-5 py-4 shadow-md"
                         >
-                          <span className="font-black text-slate-800">
+                          <span className="font-black text-slate-800 dark:text-slate-100">
                             {vote.voter}
                           </span>
                           <span className="text-2xl font-black text-rose-500">
@@ -1333,7 +1333,7 @@ export default function PartyGamePage() {
                   </div>
                 )}
 
-                <p className="mb-4 text-sm font-black uppercase tracking-wide text-slate-500">
+                <p className="mb-4 text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   Revealing least likely to most likely
                 </p>
 
@@ -1359,7 +1359,7 @@ export default function PartyGamePage() {
                               ? "bg-gradient-to-r from-slate-200 to-slate-300"
                               : isThird
                                 ? "bg-gradient-to-r from-orange-200 to-orange-300"
-                                : "bg-white"
+                                : "bg-white dark:bg-slate-800"
                         }`}
                       >
                         <div className="flex items-center gap-4">
@@ -1378,19 +1378,19 @@ export default function PartyGamePage() {
                           </div>
 
                           <div className="min-w-0 flex-1 text-left">
-                            <p className="text-sm font-black uppercase tracking-wide text-slate-500">
+                            <p className="text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
                               {isWinner
                                 ? "Most Likely"
                                 : `Rank #${originalPlacement}`}
                             </p>
 
-                            <p className="truncate text-2xl font-black text-slate-800">
+                            <p className="truncate text-2xl font-black text-slate-800 dark:text-slate-100">
                               {result.name}
                             </p>
                           </div>
 
                           <div className="text-right">
-                            <p className="font-black text-violet-600">
+                            <p className="font-black text-violet-600 dark:text-violet-300">
                               Avg. #{result.averagePlacement.toFixed(1)}
                             </p>
                           </div>
@@ -1402,7 +1402,7 @@ export default function PartyGamePage() {
 
                 {revealedRankingCount === rankingResults.length &&
                   rankingResults.length > 0 && (
-                    <p className="mt-5 text-sm font-black uppercase tracking-wide text-slate-500">
+                    <p className="mt-5 text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
                       Most likely revealed
                     </p>
                   )}
@@ -1410,20 +1410,20 @@ export default function PartyGamePage() {
                 {room.current_result_uncovered &&
                   rankingRevealComplete && (
                     <div className="mt-6 space-y-4">
-                      <p className="text-lg font-black text-slate-700">
+                      <p className="text-lg font-black text-slate-700 dark:text-slate-200">
                         Individual Rankings
                       </p>
 
                       {rankingReveals.map((reveal) => (
                         <div
                           key={reveal.voter}
-                          className="rounded-3xl bg-white p-5 text-left shadow-md"
+                          className="rounded-3xl bg-white dark:bg-slate-800 p-5 text-left shadow-md"
                         >
                           <p className="font-black text-pink-600">
                             {reveal.voter}
                           </p>
 
-                          <p className="mt-2 font-bold text-slate-600">
+                          <p className="mt-2 font-bold text-slate-600 dark:text-slate-300">
                             {reveal.ranking.join(" → ")}
                           </p>
                         </div>
@@ -1459,7 +1459,7 @@ export default function PartyGamePage() {
                 </span>
               </button>
             ) : (
-              <p className="mt-8 text-lg font-bold text-sky-700">
+              <p className="mt-8 text-lg font-bold text-sky-700 dark:text-sky-300">
                 Waiting for the host
                 to continue...
               </p>
@@ -1470,11 +1470,11 @@ export default function PartyGamePage() {
         {room.game_phase ===
           "finished" && (
           <>
-            <h1 className="mt-6 text-5xl font-black text-slate-800">
+            <h1 className="mt-6 text-5xl font-black text-slate-800 dark:text-slate-100">
               Party Complete!
             </h1>
 
-            <p className="mt-4 text-lg font-bold text-sky-700">
+            <p className="mt-4 text-lg font-bold text-sky-700 dark:text-sky-300">
               You completed all{" "}
               {PARTY_TOTAL_ROUNDS} Party
               Mode rounds.
@@ -1499,7 +1499,7 @@ export default function PartyGamePage() {
           </p>
         )}
 
-        <p className="mt-6 text-sm font-semibold text-slate-400">
+        <p className="mt-6 text-sm font-semibold text-slate-400 dark:text-slate-400">
           Playing as {playerName}
         </p>
       </section>

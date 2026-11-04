@@ -69,7 +69,7 @@ function AnimatedPercentage({
         {displayPercent}%
       </p>
 
-      <div className="mt-3 h-5 overflow-hidden rounded-full bg-sky-100">
+      <div className="mt-3 h-5 overflow-hidden rounded-full bg-sky-100 dark:bg-slate-700">
         <div
           className="h-full rounded-full bg-gradient-to-r from-violet-400 to-purple-500 transition-[width] duration-700 ease-out"
           style={{
@@ -492,7 +492,7 @@ export default function SpicyGamePage() {
 
   if (!room) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 p-6">
+      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 p-6">
         <p className="text-2xl font-black text-white">
           {error || "Loading..."}
         </p>
@@ -501,28 +501,28 @@ export default function SpicyGamePage() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 p-6">
-      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 p-6">
+      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 dark:bg-white/10 blur-2xl" />
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
       {room && <HostMenu roomId={room.id} game="spicy" isHost={isHost} />}
-      <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 bg-white/70 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
+      <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
         <div className="flex items-center justify-center gap-2">
           <Flame className="h-7 w-7 text-red-400" />
-          <p className="text-sm font-black uppercase tracking-widest text-sky-600">
+          <p className="text-sm font-black uppercase tracking-widest text-sky-600 dark:text-sky-300">
             Spicy
           </p>
         </div>
 
         {room.game_phase !== "finished" && (
-          <p className="mt-3 font-bold text-slate-500">
+          <p className="mt-3 font-bold text-slate-500 dark:text-slate-400">
             Round {room.current_round} / {SPICY_TOTAL_ROUNDS}
           </p>
         )}
 
         {room.game_phase === "question" && (
           <>
-            <h1 className="mt-6 text-3xl font-black leading-tight text-slate-800 md:text-4xl">
+            <h1 className="mt-6 text-3xl font-black leading-tight text-slate-800 dark:text-slate-100 md:text-4xl">
               {room.current_question}
             </h1>
 
@@ -563,7 +563,7 @@ export default function SpicyGamePage() {
             </div>
 
             {selectedAnswer && (
-              <p className="mt-6 text-lg font-bold text-sky-700">
+              <p className="mt-6 text-lg font-bold text-sky-700 dark:text-sky-300">
                 You chose {selectedAnswer}. Waiting for everyone
                 else...
               </p>
@@ -584,15 +584,15 @@ export default function SpicyGamePage() {
               </p>
             </div>
           ) : (
-            <p className="mt-5 text-sm font-bold text-slate-400">
+            <p className="mt-5 text-sm font-bold text-slate-400 dark:text-slate-400">
               Votes are anonymous this round
             </p>
           )}
-            <p className="mt-6 text-sm font-black uppercase tracking-wide text-sky-500">
+            <p className="mt-6 text-sm font-black uppercase tracking-wide text-sky-500 dark:text-sky-300">
               Results
             </p>
 
-            <h1 className="mt-3 text-3xl font-black leading-tight text-slate-800 md:text-4xl">
+            <h1 className="mt-3 text-3xl font-black leading-tight text-slate-800 dark:text-slate-100 md:text-4xl">
               {room.current_question}
             </h1>
 
@@ -600,10 +600,10 @@ export default function SpicyGamePage() {
               {results.map((result, index) => (
                 <div
                   key={result.answer}
-                  className="rounded-3xl bg-white p-5 shadow-md"
+                  className="rounded-3xl bg-white dark:bg-slate-800 p-5 shadow-md"
                 >
                   <div className="mb-3 flex items-start justify-between gap-4">
-                    <p className="flex-1 text-left text-xl font-black text-slate-800 md:text-2xl">
+                    <p className="flex-1 text-left text-xl font-black text-slate-800 dark:text-slate-100 md:text-2xl">
                       {result.answer}
                     </p>
 
@@ -615,7 +615,7 @@ export default function SpicyGamePage() {
                     </div>
                   </div>
 
-                  <p className="mt-2 text-sm font-bold text-slate-400">
+                  <p className="mt-2 text-sm font-bold text-slate-400 dark:text-slate-400">
                     {result.count} vote
                     {result.count === 1 ? "" : "s"}
                   </p>
@@ -624,14 +624,14 @@ export default function SpicyGamePage() {
                       {result.voters.map((voter) => (
                         <span
                           key={voter}
-                          className="rounded-full bg-pink-100 px-4 py-2 text-sm font-black text-pink-700"
+                          className="rounded-full bg-pink-100 dark:bg-pink-950 px-4 py-2 text-sm font-black text-pink-700 dark:text-pink-300"
                         >
                           {voter}
                         </span>
                       ))}
 
                       {result.voters.length === 0 && (
-                        <span className="text-sm font-bold text-slate-400">
+                        <span className="text-sm font-bold text-slate-400 dark:text-slate-400">
                           Nobody chose this
                         </span>
                       )}
@@ -659,7 +659,7 @@ export default function SpicyGamePage() {
                 </span>
               </button>
             ) : (
-              <p className="mt-8 text-lg font-bold text-sky-700">
+              <p className="mt-8 text-lg font-bold text-sky-700 dark:text-sky-300">
                 Waiting for the host to continue...
               </p>
             )}
@@ -668,11 +668,11 @@ export default function SpicyGamePage() {
 
         {room.game_phase === "finished" && (
           <>
-            <h1 className="mt-6 text-5xl font-black text-slate-800">
+            <h1 className="mt-6 text-5xl font-black text-slate-800 dark:text-slate-100">
               Game Complete!
             </h1>
 
-            <p className="mt-4 text-lg font-bold text-sky-700">
+            <p className="mt-4 text-lg font-bold text-sky-700 dark:text-sky-300">
               You completed all {SPICY_TOTAL_ROUNDS} rounds of Spicy.
             </p>
 
@@ -695,7 +695,7 @@ export default function SpicyGamePage() {
           </p>
         )}
 
-        <p className="mt-6 text-sm font-semibold text-slate-400">
+        <p className="mt-6 text-sm font-semibold text-slate-400 dark:text-slate-400">
           Playing as {playerName}
         </p>
       </section>

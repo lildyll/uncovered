@@ -212,36 +212,36 @@ export default function RoomPage() {
   }, [roomId, code, playerId, playerName, router]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 via-sky-200 to-cyan-100 px-6 pt-2 pb-6">
-      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 px-6 pt-2 pb-6">
+      <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 dark:bg-white/10 blur-2xl" />
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-col gap-6">
         <header className="text-center">
           <UncoveredLogo />
-          <p className="mt-4 text-lg font-semibold text-sky-700">Waiting Room</p>
+          <p className="mt-4 text-lg font-semibold text-sky-700 dark:text-sky-300">Waiting Room</p>
         </header>
 
-        <section className="rounded-[36px] border border-white/50 bg-white/70 p-6 shadow-2xl backdrop-blur-md">
+        <section className="rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-6 shadow-2xl backdrop-blur-md">
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-sky-400 shadow-lg">
               <User className="h-7 w-7 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold uppercase tracking-wide text-sky-500">You Joined As</p>
-              <h2 className="text-3xl font-black text-slate-800">{playerName}</h2>
+              <p className="text-sm font-bold uppercase tracking-wide text-sky-500 dark:text-sky-300">You Joined As</p>
+              <h2 className="text-3xl font-black text-slate-800 dark:text-slate-100">{playerName}</h2>
             </div>
           </div>
 
-          <div className="mt-6 rounded-3xl bg-white p-5 text-center shadow-md">
-            <p className="text-sm font-bold uppercase tracking-wide text-sky-500">Room Code</p>
+          <div className="mt-6 rounded-3xl bg-white dark:bg-slate-800 p-5 text-center shadow-md">
+            <p className="text-sm font-bold uppercase tracking-wide text-sky-500 dark:text-sky-300">Room Code</p>
             <p className="mt-2 text-5xl font-black tracking-widest text-blue-500">{code}</p>
           </div>
 
-          <div className="mt-6 rounded-3xl bg-white p-5 shadow-md">
+          <div className="mt-6 rounded-3xl bg-white dark:bg-slate-800 p-5 shadow-md">
             <div className="mb-4 flex items-center gap-3">
               <Users className="h-6 w-6 text-emerald-400" />
-              <h3 className="text-xl font-black text-slate-800">Players Joined</h3>
+              <h3 className="text-xl font-black text-slate-800 dark:text-slate-100">Players Joined</h3>
             </div>
 
             <div className="space-y-3">
@@ -250,19 +250,19 @@ export default function RoomPage() {
                   key={player.id}
                   className={`flex items-center justify-between rounded-2xl px-4 py-3 ${
                     player.id === playerId
-                      ? "bg-blue-50 ring-2 ring-blue-200"
-                      : "bg-sky-50"
+                      ? "bg-blue-50 dark:bg-blue-950/70 ring-2 ring-blue-200 dark:ring-blue-700"
+                      : "bg-sky-50 dark:bg-slate-800/80"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-500 font-bold text-white">
                       {index + 1}
                     </div>
-                    <p className="font-bold text-slate-700">{player.name}</p>
+                    <p className="font-bold text-slate-700 dark:text-slate-200">{player.name}</p>
                   </div>
 
                   {player.id === playerId && (
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
+                    <span className="rounded-full bg-blue-100 dark:bg-blue-950 px-3 py-1 text-xs font-bold text-blue-700 dark:text-blue-300">
                       You
                     </span>
                   )}
