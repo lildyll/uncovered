@@ -30,6 +30,7 @@ export type Player = {
   name: string;
   score: number;
   created_at?: string;
+  photo_path?: string | null;
 };
 
 export type Room = {

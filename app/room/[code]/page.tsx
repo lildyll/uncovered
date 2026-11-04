@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Gamepad2, User, Users } from "lucide-react";
+import { Gamepad2, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Player } from "@/lib/types";
 import UncoveredLogo from "@/components/UncoveredLogo";
+import PlayerAvatar from "@/components/PlayerAvatar";
+import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 
 type AvailableGame = "spicy" | "party" | "truth_or_dare" | "fool_me_once" | "paranoia";
 
@@ -27,6 +29,7 @@ export default function RoomPage() {
 
   const [roomId, setRoomId] = useState("");
   const [players, setPlayers] = useState<Player[]>([]);
+  const avatarUrls = useRoomAvatarUrls(roomId, players);
   const [error, setError] = useState("");
   const leavingRef = useRef(false);
 
@@ -79,7 +82,7 @@ export default function RoomPage() {
       // A kicked player must not be able to rejoin using a stale lobby URL.
       const { data: playerData, error: playersError } = await supabase
         .from("players")
-        .select("id, room_id, name, score, created_at")
+        .select("id, room_id, name, score, created_at, photo_path")
         .eq("room_id", room.id)
         .order("created_at", { ascending: true });
 
@@ -113,7 +116,7 @@ export default function RoomPage() {
     async function refreshPlayers() {
       const { data, error: refreshError } = await supabase
         .from("players")
-        .select("id, room_id, name, score, created_at")
+        .select("id, room_id, name, score, created_at, photo_path")
         .eq("room_id", roomId)
         .order("created_at", { ascending: true });
 
@@ -225,7 +228,7 @@ export default function RoomPage() {
         <section className="rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-6 shadow-2xl backdrop-blur-md">
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-sky-400 shadow-lg">
-              <User className="h-7 w-7 text-white" />
+              <PlayerAvatar name={playerName} src={avatarUrls[playerId || ""]} size="md" />
             </div>
             <div>
               <p className="text-sm font-bold uppercase tracking-wide text-sky-500 dark:text-sky-300">You Joined As</p>
@@ -245,7 +248,7 @@ export default function RoomPage() {
             </div>
 
             <div className="space-y-3">
-              {players.map((player, index) => (
+              {players.map((player) => (
                 <div
                   key={player.id}
                   className={`flex items-center justify-between rounded-2xl px-4 py-3 ${
@@ -255,9 +258,7 @@ export default function RoomPage() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-500 font-bold text-white">
-                      {index + 1}
-                    </div>
+                    <PlayerAvatar name={player.name} src={avatarUrls[player.id]} size="sm" />
                     <p className="font-bold text-slate-700 dark:text-slate-200">{player.name}</p>
                   </div>
 

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
-  Crown,
   Flame,
   Gamepad2,
   PartyPopper,
@@ -29,6 +28,8 @@ import { createFoolMeOnceGame } from "@/lib/fool-me-once";
 import { createParanoiaGame } from "@/lib/paranoia";
 import type { Player } from "@/lib/types";
 import UncoveredLogo from "@/components/UncoveredLogo";
+import PlayerAvatar from "@/components/PlayerAvatar";
+import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 
 const games = [
   {
@@ -83,6 +84,7 @@ export default function HostPage() {
 
   const [roomId, setRoomId] = useState("");
   const [players, setPlayers] = useState<Player[]>([]);
+  const avatarUrls = useRoomAvatarUrls(roomId, players);
   const [selectedGame, setSelectedGame] = useState<AvailableGame>("spicy");
   const [error, setError] = useState("");
   const [isStarting, setIsStarting] = useState(false);
@@ -150,7 +152,7 @@ export default function HostPage() {
 
       const { data: playerData, error: playersError } = await supabase
         .from("players")
-        .select("id, room_id, name, score, created_at")
+        .select("id, room_id, name, score, created_at, photo_path")
         .eq("room_id", room.id)
         .order("created_at", { ascending: true });
 
@@ -171,7 +173,7 @@ export default function HostPage() {
     async function refreshPlayers() {
       const { data, error: playerError } = await supabase
         .from("players")
-        .select("id, room_id, name, score, created_at")
+        .select("id, room_id, name, score, created_at, photo_path")
         .eq("room_id", roomId)
         .order("created_at", { ascending: true });
 
@@ -347,7 +349,7 @@ export default function HostPage() {
           <div className="rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-6 shadow-2xl backdrop-blur-md">
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-sky-400 shadow-lg">
-                <Crown className="h-7 w-7 text-white" />
+                <PlayerAvatar name={hostName} src={avatarUrls[playerId || ""]} size="md" />
               </div>
               <div>
                 <p className="text-sm font-bold uppercase tracking-wide text-sky-500 dark:text-sky-300">Host</p>
@@ -367,15 +369,13 @@ export default function HostPage() {
               </div>
 
               <div className="space-y-3">
-                {players.map((player, index) => (
+                {players.map((player) => (
                   <div
                     key={player.id}
                     className="flex items-center justify-between rounded-2xl bg-sky-50 dark:bg-slate-800/80 px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-500 font-bold text-white">
-                        {index + 1}
-                      </div>
+                      <PlayerAvatar name={player.name} src={avatarUrls[player.id]} size="sm" />
                       <p className="font-bold text-slate-700 dark:text-slate-200">{player.name}</p>
                     </div>
 

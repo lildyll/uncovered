@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import AvatarPicker from "@/components/AvatarPicker";
+import { uploadPlayerAvatar } from "@/lib/avatar-upload";
 import { useRouter } from "next/navigation";
 import { PartyPopper, Gamepad2, User, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -24,6 +26,7 @@ export default function Home() {
 
   const [playerName, setPlayerName] = useState("");
   const [joinCode, setJoinCode] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [error, setError] = useState("");
 
   const [isJoining, setIsJoining] = useState(false);
@@ -44,6 +47,7 @@ export default function Home() {
     try {
       const user = await ensureAnonymousUser();
       const code = makeRoomCode();
+      const photoPath = avatarFile ? await uploadPlayerAvatar(user.id, avatarFile) : null;
 
       const { data: room, error: roomError } = await supabase
       .from("rooms")
@@ -65,6 +69,7 @@ export default function Home() {
           room_id: room.id,
           name: playerName,
           user_id: user.id,
+          photo_path: photoPath,
         })
         .select("id")
         .single();
@@ -77,6 +82,8 @@ export default function Home() {
       router.push(
         `/host/${code}?name=${encodeURIComponent(playerName)}&playerId=${player.id}`
       );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not create room.");
     } finally {
       setIsCreating(false);
     }
@@ -105,6 +112,7 @@ export default function Home() {
 
     try {
       const user = await ensureAnonymousUser();
+      const photoPath = avatarFile ? await uploadPlayerAvatar(user.id, avatarFile) : null;
       const { data: room, error: roomError } = await supabase
         .from("rooms")
         .select("id, game_started")
@@ -132,6 +140,7 @@ export default function Home() {
           room_id: room.id,
           name: playerName,
           user_id: user.id,
+          photo_path: photoPath,
         })
         .select("id")
         .single();
@@ -148,6 +157,8 @@ export default function Home() {
           playerName.trim()
         )}&playerId=${player.id}`
       );
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not join room.");
     } finally {
       setIsJoining(false);
     }
@@ -175,8 +186,11 @@ export default function Home() {
           />
         </div>
 
+        <AvatarPicker file={avatarFile} onChange={setAvatarFile} disabled={isCreating || isJoining} />
+
         <button
           onClick={createRoom}
+          disabled={isCreating || isJoining}
           className="group w-full rounded-[28px] bg-gradient-to-r from-blue-500 to-sky-400 p-6 shadow-lg transition hover:scale-[1.02]"
         >
           <div className="flex items-center justify-between">
@@ -220,7 +234,7 @@ export default function Home() {
         <button
           type="button"
           onClick={joinRoom}
-          disabled={isJoining}
+          disabled={isJoining || isCreating}
           className="group w-full rounded-3xl bg-gradient-to-r from-emerald-400 to-green-400 py-5 text-2xl font-bold text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
         >
           <div className="flex items-center justify-center gap-3">
