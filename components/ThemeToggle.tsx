@@ -94,7 +94,7 @@ export default function ThemeToggle() {
           ? "Switch to light mode"
           : "Switch to dark mode"
       }
-      className="fixed right-4 top-4 z-50 rounded-full border border-white/30 bg-white/80 p-3 text-slate-700 shadow-lg backdrop-blur-md transition hover:scale-105 dark:bg-slate-800 dark:text-yellow-300"
+      className="fixed right-4 bottom-4 z-50 rounded-full border border-white/30 bg-white/80 p-3 text-slate-700 shadow-lg backdrop-blur-md transition hover:scale-105 dark:bg-slate-800 dark:text-yellow-300"
     >
       {theme === "dark" ? (
         <Moon className="h-5 w-5" />
