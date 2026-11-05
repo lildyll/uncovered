@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { uploadPlayerAvatar } from "@/lib/avatar-upload";
 import { useRouter } from "next/navigation";
-import { PartyPopper, Gamepad2, User, ArrowRight, Camera, X } from "lucide-react";
+import { Gamepad2, User, ArrowRight, Camera, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ensureAnonymousUser } from "@/lib/auth";
 import UncoveredLogo from "@/components/UncoveredLogo";
@@ -286,26 +286,17 @@ export default function Home() {
         </div>
 
         <button
+          type="button"
           onClick={createRoom}
           disabled={isCreating || isJoining}
-          className="group w-full rounded-[28px] bg-gradient-to-r from-blue-500 to-sky-400 p-6 shadow-lg transition hover:scale-[1.02]"
+          className="group w-full rounded-3xl bg-gradient-to-r from-blue-500 to-sky-400 py-5 text-2xl font-bold text-white shadow-lg transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 text-left">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 dark:bg-white/10">
-                <PartyPopper className="h-7 w-7 text-white" />
-              </div>
-
-              <div>
-                <h2 className="text-2xl font-bold text-white">Create Room</h2>
-                <p className="text-sm text-white/80">
-                  Host and join the game
-                </p>
-              </div>
-            </div>
-
-            <ArrowRight className="h-8 w-8 text-white transition group-hover:translate-x-1" />
-          </div>
+          <span className="flex items-center justify-center gap-3">
+            {isCreating ? "Creating..." : "Create Room"}
+            {!isCreating && (
+              <ArrowRight className="h-6 w-6 transition group-hover:translate-x-1" />
+            )}
+          </span>
         </button>
 
         <div className="my-6 flex items-center gap-4">

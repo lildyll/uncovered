@@ -12,7 +12,7 @@ export default function UncoveredLogo({
         font-black tracking-[-0.03em] leading-none text-white
         ${className}`}
     >
-      <span className="relative top-[0.18em] drop-shadow-[0_0.1em_0_#316BF3]">
+      <span className="relative top-[0.19em] drop-shadow-[0_0.1em_0_#316BF3]">
         U
       </span>
 
