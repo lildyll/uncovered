@@ -878,7 +878,7 @@ export default function TruthOrDarePage() {
                           </p>
 
                           <p className="mt-1 text-xl font-black text-slate-700 dark:text-slate-200">
-                            Answeres are revealed, but the author is hidden.
+                            Answers are revealed, but the author is hidden.
                           </p>
                         </div>
 
