@@ -148,7 +148,7 @@ export async function startParanoiaSecondRound(roomId: string, players: Player[]
   shuffled.forEach((p, index) => {
     assignments[p.id] = shuffled[(index + 1) % shuffled.length].id;
   });
-  const { error: updateError } = await supabase.from("rooms").update({
+  const { data: updated, error: updateError } = await supabase.from("rooms").update({
     paranoia_stage: 2,
     paranoia_phase: "setup",
     paranoia_assignments: assignments,
@@ -160,18 +160,15 @@ export async function startParanoiaSecondRound(roomId: string, players: Player[]
     paranoia_reveal: false,
     current_round: 0,
     game_phase: "question",
-  }).eq("id", roomId).eq("paranoia_stage", 1).eq("paranoia_phase", "reveal");
+  }).eq("id", roomId).eq("paranoia_stage", 1).eq("paranoia_phase", "reveal").select("id");
   if (updateError) throw new Error(updateError.message);
+  if (!updated?.length) {
+    const { data: current } = await supabase.from("rooms").select("paranoia_stage").eq("id", roomId).maybeSingle();
+    if (current?.paranoia_stage !== 2) throw new Error("Could not start Round 2. Retry.");
+  }
 }
 
 export async function returnParanoiaToLobby(roomId: string) {
-  const { error: deleteError } = await supabase
-    .from("paranoia_questions")
-    .delete()
-    .eq("room_id", roomId);
-
-  if (deleteError) throw new Error(deleteError.message);
-
   const { error: roomError } = await supabase
     .from("rooms")
     .update({
@@ -196,4 +193,9 @@ export async function returnParanoiaToLobby(roomId: string) {
     .eq("id", roomId);
 
   if (roomError) throw new Error(roomError.message);
+
+  // Cleanup must not block the room from returning to the lobby.
+  const { error: deleteError } = await supabase.from("paranoia_questions")
+    .delete().eq("room_id", roomId);
+  if (deleteError) console.warn("Paranoia cleanup failed:", deleteError.message);
 }

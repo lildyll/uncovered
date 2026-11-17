@@ -5,7 +5,7 @@ import type {
   SpicyQuestion,
 } from "@/lib/types";
 
-export const SPICY_TOTAL_ROUNDS = 20;
+export const SPICY_TOTAL_ROUNDS = 2;
 
 export type GeneratedQuestion = {
   prompt: string;

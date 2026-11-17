@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useRoomRecovery } from "@/lib/room-recovery";
 import { changeRoomMembership } from "@/lib/room-membership";
 import {
   createNextSpicyQuestion,
@@ -84,6 +85,7 @@ export default function HostPage() {
   const playerId = searchParams.get("playerId");
 
   const [roomId, setRoomId] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [players, setPlayers] = useState<Player[]>([]);
   const avatarUrls = useRoomAvatarUrls(roomId, players);
   const [selectedGame, setSelectedGame] = useState<AvailableGame>("spicy");
@@ -131,11 +133,11 @@ export default function HostPage() {
       const { data: room, error: roomError } = await supabase
         .from("rooms")
         .select("id")
-        .eq("code", code)
+        .eq("code", code.toUpperCase())
         .single();
 
       if (roomError || !room) {
-        setError("Room not found.");
+        setError("Could not load the room. Check your connection and tap Retry.");
         return;
       }
 
@@ -156,7 +158,7 @@ export default function HostPage() {
     }
 
     loadRoom();
-  }, [code]);
+  }, [code, loadAttempt]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -325,6 +327,12 @@ export default function HostPage() {
     };
   }, [roomId, code, hostName, playerId, router]);
 
+  useRoomRecovery(roomId, (fresh: { game_started: boolean; selected_game: AvailableGame | null }) => {
+    if (!fresh.game_started || !fresh.selected_game) return;
+    const game = fresh.selected_game;
+    router.replace(`/game/${getGamePath(game)}/${code}?name=${encodeURIComponent(hostName)}&playerId=${playerId || ""}&host=true`);
+  }, setError);
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 px-6 pt-2 pb-6">
       <div className="absolute left-10 top-20 h-32 w-32 rounded-full bg-white/20 dark:bg-white/10 blur-2xl" />
@@ -333,6 +341,10 @@ export default function HostPage() {
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-6">
         <header className="text-center">
           <UncoveredLogo />
+          {error && !roomId && (
+            <button type="button" onClick={() => { setError(""); setLoadAttempt(n => n + 1); }}
+              className="mt-3 rounded-xl bg-white px-5 py-3 font-bold text-blue-600 shadow">Retry loading room</button>
+          )}
           <p className="mt-4 text-lg font-semibold text-sky-700 dark:text-sky-300">Host Lobby</p>
         </header>
 
