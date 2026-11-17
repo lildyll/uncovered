@@ -94,13 +94,13 @@ function HomeAvatarPicker({
   );
 }
 
-function makeRoomCode() {
-  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+const ROOM_CODE_LENGTH = 4;
 
+function makeRoomCode() {
   let code = "";
 
-  for (let index = 0; index < 4; index++) {
-    code += letters[Math.floor(Math.random() * letters.length)];
+  for (let i = 0; i < ROOM_CODE_LENGTH; i++) {
+    code += Math.floor(Math.random() * 10).toString();
   }
 
   return code;
@@ -191,17 +191,15 @@ export default function Home() {
 
     setError("");
 
-    const cleanCode = joinCode
-      .replace(/[^a-zA-Z]/g, "")
-      .toUpperCase();
+    const cleanCode = joinCode.replace(/\D/g, "");
 
     if (!cleanCode || !playerName.trim()) {
       setError("Enter your name and a room code.");
       return;
     }
 
-    if (cleanCode.length !== 4) {
-      setError("Room codes are 4 letters.");
+    if (cleanCode.length !== ROOM_CODE_LENGTH) {
+      setError(`Room codes must be ${ROOM_CODE_LENGTH} digits.`);
       return;
     }
 
@@ -312,10 +310,14 @@ export default function Home() {
 
           <input
             value={joinCode}
-            onChange={(event) => setJoinCode(event.target.value)}
-            maxLength={4}
+            onChange={(event) =>
+              setJoinCode(event.target.value.replace(/\D/g, ""))
+            }
+            maxLength={ROOM_CODE_LENGTH}
+            inputMode="numeric"
+            pattern="[0-9]*"
             placeholder="Enter room code"
-            className="w-full bg-transparent text-lg uppercase text-slate-700 dark:text-slate-200 outline-none placeholder:normal-case placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="w-full bg-transparent text-lg text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
         </div>
 
