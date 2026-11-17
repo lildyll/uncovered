@@ -13,9 +13,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import {
-  ArrowDown,
   ArrowRight,
-  ArrowUp,
   GlassWater,
   Home,
   ListOrdered,
@@ -24,6 +22,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
+import DraggablePlayerRanking from "@/components/DraggablePlayerRanking";
 import { useRoomRecovery } from "@/lib/room-recovery";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
@@ -805,30 +804,6 @@ export default function PartyGamePage() {
     await checkIfEveryoneAnswered();
   }
 
-  function moveRanking(
-    index: number,
-    direction: -1 | 1
-  ) {
-    const targetIndex =
-      index + direction;
-
-    if (
-      targetIndex < 0 ||
-      targetIndex >= ranking.length ||
-      selectedAnswer
-    ) {
-      return;
-    }
-
-    const next = [...ranking];
-    [next[index], next[targetIndex]] = [
-      next[targetIndex],
-      next[index],
-    ];
-
-    setRanking(next);
-  }
-
   async function nextQuestion() {
     if (
       !room ||
@@ -1098,69 +1073,13 @@ export default function PartyGamePage() {
                   Most likely
                 </p>
 
-                <div className="space-y-3">
-                  {ranking.map(
-                    (rankedId, index) => (
-                      <div
-                        key={rankedId}
-                        className="flex items-center gap-3 rounded-3xl bg-white dark:bg-slate-800 p-4 shadow-md"
-                      >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-500 font-black text-white">
-                          {index + 1}
-                        </div>
-
-                        <PlayerAvatar name={playerMap.get(rankedId) || "Player"} src={avatarUrls[rankedId]} size="sm" />
-                        <p className="min-w-0 flex-1 truncate text-left text-xl font-black text-slate-800 dark:text-slate-100">
-                          {playerMap.get(
-                            rankedId
-                          ) || "Player"}
-                        </p>
-
-                        <button
-                          type="button"
-                          aria-label="Move up"
-                          disabled={
-                            index === 0 ||
-                            Boolean(
-                              selectedAnswer
-                            )
-                          }
-                          onClick={() =>
-                            moveRanking(
-                              index,
-                              -1
-                            )
-                          }
-                          className="rounded-2xl bg-sky-100 dark:bg-slate-700 p-3 text-sky-700 dark:text-sky-300 disabled:opacity-30"
-                        >
-                          <ArrowUp className="h-5 w-5" />
-                        </button>
-
-                        <button
-                          type="button"
-                          aria-label="Move down"
-                          disabled={
-                            index ===
-                              ranking.length -
-                                1 ||
-                            Boolean(
-                              selectedAnswer
-                            )
-                          }
-                          onClick={() =>
-                            moveRanking(
-                              index,
-                              1
-                            )
-                          }
-                          className="rounded-2xl bg-pink-100 dark:bg-pink-950 p-3 text-pink-700 dark:text-pink-300 disabled:opacity-30"
-                        >
-                          <ArrowDown className="h-5 w-5" />
-                        </button>
-                      </div>
-                    )
-                  )}
-                </div>
+                <DraggablePlayerRanking
+                  ranking={ranking}
+                  onChange={setRanking}
+                  players={players}
+                  avatarUrls={avatarUrls}
+                  disabled={Boolean(selectedAnswer) || isSubmitting}
+                />
 
                 <p className="mt-4 text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   Least likely

@@ -106,7 +106,7 @@ export function buildParanoiaOrder(
 
 export async function createParanoiaGame(
   roomId: string,
-  players: Player[]
+  players: Player[],
 ) {
   if (players.length < 2) {
     throw new Error("Paranoia needs at least 2 players.");
@@ -135,6 +135,7 @@ export async function createParanoiaGame(
       paranoia_current_question_id: null,
       paranoia_current_player_id: null,
       paranoia_reveal: false,
+      paranoia_no_reveal_streak: 0
     })
     .eq("id", roomId);
 

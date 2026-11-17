@@ -328,12 +328,25 @@ export default function ParanoiaPage() {
   }
 
   setIsFlippingRequest(true);
-  const result = Math.random() < 0.5;
+  const streak = room.paranoia_no_reveal_streak ?? 0;
+  const revealChance = Math.min(
+    0.5 + streak * 0.1,
+    1
+  );
+
+  const result = Math.random() < revealChance;
+
+  const nextStreak = result ? 0 : streak + 1;
 
   try {
     const { data: updated, error: updateError } = await supabase
       .from("rooms")
-      .update({ paranoia_phase: "reveal", paranoia_reveal: result, game_phase: "results" })
+      .update({
+        paranoia_phase: "reveal",
+        paranoia_reveal: result,
+        paranoia_no_reveal_streak: nextStreak,
+        game_phase: "results",
+      })
       .eq("id", room.id)
       .eq("paranoia_phase", "turn")
       .eq("paranoia_current_player_id", playerId)

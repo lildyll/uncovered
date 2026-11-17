@@ -20,7 +20,7 @@ export function useRoomRecovery(roomId: string | undefined, onRoom: (room: any) 
       inFlight = true;
       try {
         const { data, error } = await supabase.from("rooms").select("*")
-          .eq("id", roomId).maybeSingle().abortSignal(AbortSignal.timeout(12000));
+          .eq("id", roomId).maybeSingle();
         if (cancelled) return;
         if (error) throw error;
         if (data) callback.current(data);

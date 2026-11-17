@@ -64,6 +64,7 @@ export type Room = {
   paranoia_reveal: boolean;
   paranoia_stage: 1 | 2;
   paranoia_assignments: Record<string, string>;
+  paranoia_no_reveal_streak?: number;
 
   fool_me_once_phase: FoolMeOncePhase;
   fool_me_once_round_order: string[];
