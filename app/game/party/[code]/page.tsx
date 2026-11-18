@@ -721,38 +721,40 @@ export default function PartyGamePage() {
     checkIfEveryoneAnswered,
   ]);
 
+  // Run the podium reveal only once for each results round.
+  // Room recovery can reload results without starting the animation over.
+  const podiumRevealKey = useRef("");
+
   useEffect(() => {
     if (
       room?.game_phase !== "results" ||
       room.current_question_type !== "most_likely" ||
       rankingResults.length === 0
     ) {
-      setRevealedRankingCount(0);
       return;
     }
 
+    const revealKey = `${room.id}:${room.current_round}:${room.current_question}`;
+    if (podiumRevealKey.current === revealKey) return;
+    podiumRevealKey.current = revealKey;
     setRevealedRankingCount(0);
 
-    const timers: number[] = [];
-
-    rankingResults.forEach((_, index) => {
-      const timer = window.setTimeout(() => {
+    const timers = Array.from({ length: rankingResults.length }, (_, index) =>
+      window.setTimeout(() => {
         setRevealedRankingCount(index + 1);
-      }, 700 + index * 900);
-
-      timers.push(timer);
-    });
+      }, 700 + index * 900)
+    );
 
     return () => {
-      timers.forEach((timer) => {
-        window.clearTimeout(timer);
-      });
+      timers.forEach(window.clearTimeout);
     };
   }, [
+    room?.id,
     room?.game_phase,
     room?.current_question_type,
     room?.current_round,
-    rankingResults,
+    room?.current_question,
+    rankingResults.length,
   ]);
 
   async function submitAnswer(
@@ -1293,9 +1295,9 @@ export default function PartyGamePage() {
                                 : "bg-white dark:bg-slate-800"
                         }`}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4">
                           <div
-                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl font-black ${
+                            className={`flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full text-lg sm:text-xl font-black ${
                               isWinner
                                 ? "bg-yellow-600 text-white"
                                 : isSecond
@@ -1308,25 +1310,21 @@ export default function PartyGamePage() {
                             {originalPlacement}
                           </div>
 
-                          <PlayerAvatar name={result.name} src={avatarUrls[result.playerId]} size="md" />
+                          <div className="shrink-0">
+                            <PlayerAvatar name={result.name} src={avatarUrls[result.playerId]} size="md" />
+                          </div>
                           <div className="min-w-0 flex-1 text-left">
-                            <p className="text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                              {isWinner
-                                ? "Most Likely"
-                                : `Rank #${originalPlacement}`}
+                            <p className="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                              {isWinner ? "Most Likely" : `Rank #${originalPlacement}`}
                             </p>
-
-                            <p className="truncate text-2xl font-black text-slate-800 dark:text-slate-100">
+                            <p className="mt-1 break-words text-lg sm:text-2xl font-black leading-tight text-slate-800 dark:text-slate-100">
                               {result.name}
                             </p>
                           </div>
-
-                          <div className="text-right">
-                            <p className="font-black text-violet-600 dark:text-violet-300">
-                              Avg. #{result.averagePlacement.toFixed(1)}
-                            </p>
-                          </div>
                         </div>
+                        <p className="mt-3 text-right text-sm sm:text-base font-black text-violet-700 dark:text-violet-300">
+                          Avg. #{result.averagePlacement.toFixed(1)}
+                        </p>
                       </div>
                     );
                   })}
