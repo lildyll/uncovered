@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Edit3, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import AvatarCleanupAdmin from "@/components/AvatarCleanupAdmin";
+import SuggestionReviewAdmin from "@/components/SuggestionReviewAdmin";
 
 type Game = "spicy" | "party" | "fool_me_once";
 type Question = {
@@ -463,6 +464,7 @@ function changeType(type: string) {
             </div>
           </section>
         </div>
+          <SuggestionReviewAdmin password={password} />
           <AvatarCleanupAdmin password={password} />
         <section className="mt-6 rounded-[36px] border border-white/50 bg-white/70 p-6 shadow-2xl backdrop-blur-md">
           <h2 className="text-2xl font-black text-slate-800">Kiss, Marry, Kill — Name Pool</h2>
