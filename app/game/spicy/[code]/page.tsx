@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   useParams,
   useRouter,
@@ -9,7 +9,6 @@ import {
 import { ArrowRight, Flame, Home } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
-import { useRoomRecovery } from "@/lib/room-recovery";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 import { createNextSpicyQuestion,
@@ -276,22 +275,6 @@ export default function SpicyGamePage() {
     loadGame();
   }, [code, applyRoomState, loadPlayers]);
 
-  // Recover missed realtime updates after a phone sleeps or disconnects.
-  // Avoid replaying the same phase, which would reset local answers/animations.
-  const lastRoomSignature = useRef("");
-  useRoomRecovery(room?.id, (freshRoom: Room) => {
-    const signature = JSON.stringify([
-      freshRoom.game_started, freshRoom.game_phase, freshRoom.selected_game,
-      freshRoom.current_round, freshRoom.current_question,
-      freshRoom.current_question_type, freshRoom.truth_or_dare_stage,
-      freshRoom.truth_or_dare_current_item_id, freshRoom.paranoia_stage,
-      freshRoom.paranoia_phase, freshRoom.paranoia_current_index,
-      freshRoom.paranoia_current_question_id, freshRoom.paranoia_reveal,
-    ]);
-    if (signature === lastRoomSignature.current) return;
-    lastRoomSignature.current = signature;
-    void applyRoomState(freshRoom);
-  }, setError);
 
   useEffect(() => {
     if (!room?.id) return;

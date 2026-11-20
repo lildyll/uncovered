@@ -45,13 +45,19 @@ function SortablePlayer({
   photoUrl?: string;
   disabled: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
   return (
     <div
       ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-label={`Drag to reorder ${name}, currently rank ${position}. Use Space and arrow keys with a keyboard.`}
       style={{ transform: CSS.Transform.toString(transform), transition, position: "relative", zIndex: isDragging ? 20 : undefined }}
-      className={`flex min-w-0 items-center gap-2 rounded-2xl bg-white px-3 py-3 shadow-md dark:bg-slate-800 sm:gap-3 sm:px-4 ${isDragging ? "ring-2 ring-violet-400 shadow-xl" : ""}`}
+      className={`flex min-w-0 items-center gap-2 rounded-2xl bg-white px-3 py-3 shadow-md dark:bg-slate-800 sm:gap-3 sm:px-4 ${isDragging ? "ring-2 ring-violet-400 shadow-xl" : ""} ${disabled ? "cursor-default" : "cursor-grab active:cursor-grabbing touch-none"}`}
     >
+      <span aria-hidden="true" className="flex h-10 w-6 shrink-0 items-center justify-center text-sky-600 dark:text-sky-300"><GripVertical className="h-5 w-5" /></span>
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-500 text-base font-black text-white sm:h-10 sm:w-10">
         {position}
       </div>
@@ -59,18 +65,7 @@ function SortablePlayer({
       <p className="min-w-0 flex-1 break-words text-left text-base font-black leading-tight text-slate-800 dark:text-slate-100 sm:text-lg">
         {name}
       </p>
-      <button
-        ref={setActivatorNodeRef}
-        type="button"
-        disabled={disabled}
-        aria-label={`Drag to reorder ${name}, currently rank ${position}. Use Space and arrow keys with a keyboard.`}
-        title={`Move ${name}`}
-        {...attributes}
-        {...listeners}
-        className="flex h-11 w-10 shrink-0 touch-none items-center justify-center rounded-xl bg-sky-100 text-sky-700 outline-offset-2 focus-visible:outline-2 focus-visible:outline-violet-500 disabled:opacity-40 dark:bg-slate-700 dark:text-sky-300"
-      >
-        <GripVertical className="h-6 w-6" />
-      </button>
+
     </div>
   );
 }
@@ -95,7 +90,7 @@ export default function DraggablePlayerRanking({ ranking, onChange, players, ava
 
   return (
     <div>
-      <p className="mb-3 text-sm font-semibold text-slate-500 dark:text-slate-400">Hold the handle and drag to reorder players.</p>
+      <p className="mb-3 text-sm font-semibold text-slate-500 dark:text-slate-400">Hold and drag anywhere on a player to reorder. Use the grip or keyboard as needed.</p>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

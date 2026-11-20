@@ -14,7 +14,6 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { useRoomRecovery } from "@/lib/room-recovery";
 import { changeRoomMembership } from "@/lib/room-membership";
 import {
   createNextSpicyQuestion,
@@ -327,11 +326,6 @@ export default function HostPage() {
     };
   }, [roomId, code, hostName, playerId, router]);
 
-  useRoomRecovery(roomId, (fresh: { game_started: boolean; selected_game: AvailableGame | null }) => {
-    if (!fresh.game_started || !fresh.selected_game) return;
-    const game = fresh.selected_game;
-    router.replace(`/game/${getGamePath(game)}/${code}?name=${encodeURIComponent(hostName)}&playerId=${playerId || ""}&host=true`);
-  }, setError);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-300 dark:from-slate-950 via-sky-200 dark:via-slate-900 to-cyan-100 dark:to-indigo-950 px-6 pt-2 pb-6">

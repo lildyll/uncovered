@@ -23,7 +23,6 @@ import {
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
 import DraggablePlayerRanking from "@/components/DraggablePlayerRanking";
-import { useRoomRecovery } from "@/lib/room-recovery";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 import {
@@ -582,22 +581,6 @@ export default function PartyGamePage() {
     loadPlayers,
   ]);
 
-  // Recover missed realtime updates after a phone sleeps or disconnects.
-  // Avoid replaying the same phase, which would reset local answers/animations.
-  const lastRoomSignature = useRef("");
-  useRoomRecovery(room?.id, (freshRoom: Room) => {
-    const signature = JSON.stringify([
-      freshRoom.game_started, freshRoom.game_phase, freshRoom.selected_game,
-      freshRoom.current_round, freshRoom.current_question,
-      freshRoom.current_question_type, freshRoom.truth_or_dare_stage,
-      freshRoom.truth_or_dare_current_item_id, freshRoom.paranoia_stage,
-      freshRoom.paranoia_phase, freshRoom.paranoia_current_index,
-      freshRoom.paranoia_current_question_id, freshRoom.paranoia_reveal,
-    ]);
-    if (signature === lastRoomSignature.current) return;
-    lastRoomSignature.current = signature;
-    void applyRoomState(freshRoom);
-  }, setError);
 
   useEffect(() => {
     if (!room?.id) return;
@@ -1314,15 +1297,15 @@ export default function PartyGamePage() {
                             <PlayerAvatar name={result.name} src={avatarUrls[result.playerId]} size="md" />
                           </div>
                           <div className="min-w-0 flex-1 text-left">
-                            <p className="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                            <p className="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-700">
                               {isWinner ? "Most Likely" : `Rank #${originalPlacement}`}
                             </p>
-                            <p className="mt-1 break-words text-lg sm:text-2xl font-black leading-tight text-slate-800 dark:text-slate-100">
+                            <p className="mt-1 break-words text-lg sm:text-2xl font-black leading-tight text-slate-900">
                               {result.name}
                             </p>
                           </div>
                         </div>
-                        <p className="mt-3 text-right text-sm sm:text-base font-black text-violet-700 dark:text-violet-300">
+                        <p className="mt-3 text-right text-sm sm:text-base font-black text-violet-900">
                           Avg. #{result.averagePlacement.toFixed(1)}
                         </p>
                       </div>

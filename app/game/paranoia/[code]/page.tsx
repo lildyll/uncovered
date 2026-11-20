@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Eye, HelpCircle, Send, Shuffle, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
-import { useRoomRecovery } from "@/lib/room-recovery";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 import {
@@ -164,22 +163,6 @@ export default function ParanoiaPage() {
     loadGame();
   }, [applyRoomState, code, loadPlayers]);
 
-  // Recover missed realtime updates after a phone sleeps or disconnects.
-  // Avoid replaying the same phase, which would reset local answers/animations.
-  const lastRoomSignature = useRef("");
-  useRoomRecovery(room?.id, (freshRoom: Room) => {
-    const signature = JSON.stringify([
-      freshRoom.game_started, freshRoom.game_phase, freshRoom.selected_game,
-      freshRoom.current_round, freshRoom.current_question,
-      freshRoom.current_question_type, freshRoom.truth_or_dare_stage,
-      freshRoom.truth_or_dare_current_item_id, freshRoom.paranoia_stage,
-      freshRoom.paranoia_phase, freshRoom.paranoia_current_index,
-      freshRoom.paranoia_current_question_id, freshRoom.paranoia_reveal,
-    ]);
-    if (signature === lastRoomSignature.current) return;
-    lastRoomSignature.current = signature;
-    void applyRoomState(freshRoom);
-  }, setError);
 
   useEffect(() => {
     if (!room?.id) return;
@@ -328,25 +311,12 @@ export default function ParanoiaPage() {
   }
 
   setIsFlippingRequest(true);
-  const streak = room.paranoia_no_reveal_streak ?? 0;
-  const revealChance = Math.min(
-    0.5 + streak * 0.1,
-    1
-  );
-
-  const result = Math.random() < revealChance;
-
-  const nextStreak = result ? 0 : streak + 1;
+  const result = Math.random() < 0.5;
 
   try {
     const { data: updated, error: updateError } = await supabase
       .from("rooms")
-      .update({
-        paranoia_phase: "reveal",
-        paranoia_reveal: result,
-        paranoia_no_reveal_streak: nextStreak,
-        game_phase: "results",
-      })
+      .update({ paranoia_phase: "reveal", paranoia_reveal: result, game_phase: "results" })
       .eq("id", room.id)
       .eq("paranoia_phase", "turn")
       .eq("paranoia_current_player_id", playerId)
