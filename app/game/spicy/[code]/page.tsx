@@ -9,6 +9,7 @@ import {
 import { ArrowRight, Flame, Home } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
+import ResultCelebration from "@/components/ResultCelebration";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
 import { createNextSpicyQuestion,
@@ -577,6 +578,13 @@ export default function SpicyGamePage() {
 
         {room.game_phase === "results" && (
           <>
+            <ResultCelebration
+              roundKey={`${room.id}:${room.current_round}:${room.current_question}`}
+              uncovered={Boolean(room.current_result_uncovered)}
+              unanimous={results.length === 2 && results.reduce((sum, r) => sum + r.count, 0) >= 2 && results.some(r => r.percent === 100)}
+              split={results.length === 2 && results[0].count > 0 && results[0].count === results[1].count}
+              loneWolf={results.length === 2 && results.reduce((sum, r) => sum + r.count, 0) >= 3 && results.some(r => r.count === 1)}
+            />
           {room.current_result_uncovered ? (
             <div className="mt-5 rounded-3xl bg-gradient-to-r from-red-400 to-pink-400 px-5 py-4 text-white shadow-lg">
               <p className="text-sm font-black uppercase tracking-widest">

@@ -22,6 +22,9 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
+import ResultCelebration from "@/components/ResultCelebration";
+import CelebrationBurst from "@/components/CelebrationBurst";
+import { Crown } from "lucide-react";
 import DraggablePlayerRanking from "@/components/DraggablePlayerRanking";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
@@ -907,6 +910,7 @@ export default function PartyGamePage() {
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
       {room && <HostMenu roomId={room.id} game="party" isHost={isHost} />}
+      <style>{`@keyframes partyWinnerImpact {0%{transform:scale(.92);filter:brightness(1.2)}65%{transform:scale(1.045)}100%{transform:scale(1.03)}} .party-winner-impact{animation:partyWinnerImpact 480ms ease-out both}@media(prefers-reduced-motion:reduce){.party-winner-impact{animation:none}}`}</style>
       <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
         <div className="flex items-center justify-center gap-2">
           {room.current_question_type ===
@@ -1107,6 +1111,13 @@ export default function PartyGamePage() {
         {room.game_phase ===
           "results" && (
           <>
+            <ResultCelebration
+              roundKey={`${room.id}:${room.current_round}:${room.current_question}`}
+              uncovered={Boolean(room.current_result_uncovered)}
+              unanimous={binaryResults.length === 2 && binaryResults.reduce((sum, r) => sum + r.count, 0) >= 2 && binaryResults.some(r => r.percent === 100)}
+              split={binaryResults.length === 2 && binaryResults[0].count > 0 && binaryResults[0].count === binaryResults[1].count}
+              loneWolf={binaryResults.length === 2 && binaryResults.reduce((sum, r) => sum + r.count, 0) >= 3 && binaryResults.some(r => r.count === 1)}
+            />
             {room.current_result_uncovered ? (
               <div className="mt-5 rounded-3xl bg-gradient-to-r from-red-400 to-pink-400 px-5 py-4 text-white shadow-lg">
                 <p className="text-sm font-black uppercase tracking-widest">
@@ -1268,7 +1279,7 @@ export default function PartyGamePage() {
                     return (
                       <div
                         key={result.playerId}
-                        className={`rounded-3xl p-5 shadow-lg transition-all duration-500 ${
+                        className={`relative isolate rounded-3xl p-5 shadow-lg transition-all duration-500 ${isWinner ? "party-winner-impact " : ""}${
                           isWinner
                             ? "scale-[1.03] bg-gradient-to-r from-yellow-300 to-amber-400"
                             : isSecond
@@ -1278,7 +1289,8 @@ export default function PartyGamePage() {
                                 : "bg-white dark:bg-slate-800"
                         }`}
                       >
-                        <div className="flex items-center gap-3 sm:gap-4">
+                        {isWinner && <CelebrationBurst kind="stars" triggerKey={`${room.id}:${room.current_round}:${result.playerId}:winner`} />}
+                        <div className="relative z-10 flex items-center gap-3 sm:gap-4">
                           <div
                             className={`flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full text-lg sm:text-xl font-black ${
                               isWinner
@@ -1293,7 +1305,8 @@ export default function PartyGamePage() {
                             {originalPlacement}
                           </div>
 
-                          <div className="shrink-0">
+                          <div className="relative shrink-0">
+                            {isWinner && <Crown aria-label="Winner" className="absolute -top-7 left-1/2 z-10 h-8 w-8 -translate-x-1/2 -rotate-12 fill-amber-500 text-amber-800 drop-shadow-md" />}
                             <PlayerAvatar name={result.name} src={avatarUrls[result.playerId]} size="md" />
                           </div>
                           <div className="min-w-0 flex-1 text-left">

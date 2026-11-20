@@ -464,7 +464,9 @@ export default function ParanoiaPage() {
       70% { transform: rotateY(1620deg) translateY(-18px); }
       100% { transform: rotateY(1980deg) translateY(0); }
     }
-    @media (prefers-reduced-motion: reduce) {
+    @keyframes paranoiaLanding {0%{opacity:.4;transform:scale(.93)}60%{transform:scale(1.045)}100%{opacity:1;transform:scale(1)}}
+    .paranoia-landing { animation: paranoiaLanding 420ms ease-out both; }
+    @media (prefers-reduced-motion: reduce) { .paranoia-landing {animation:none;}
       .coin-flipping-heads,
       .coin-flipping-tails { animation: none; }
     }
@@ -609,7 +611,7 @@ export default function ParanoiaPage() {
                 </p>
               </div>
             ) : room.paranoia_reveal ? (
-              <div className="mt-8">
+              <div className="mt-8 paranoia-landing">
                 <p className="text-sm font-black uppercase tracking-widest text-emerald-500">HEADS — REVEALED</p>
                 <div className="mt-5 rounded-[32px] bg-white dark:bg-slate-800 p-7 shadow-xl">
                   <h1 className="text-3xl font-black leading-tight text-slate-800 dark:text-slate-100 md:text-4xl">
@@ -618,7 +620,7 @@ export default function ParanoiaPage() {
                 </div>
               </div>
             ) : (
-              <div className="mt-8 rounded-[32px] bg-gradient-to-r from-violet-500 to-purple-600 p-8 text-white shadow-xl">
+              <div className="mt-8 paranoia-landing rounded-[32px] bg-gradient-to-r from-violet-500 to-purple-600 p-8 text-white shadow-xl">
                 <p className="text-sm font-black uppercase tracking-widest text-white/80">TAILS — KEPT SECRET</p>
                 <p className="mt-3 text-3xl font-black">Nobody will know this one.</p>
               </div>

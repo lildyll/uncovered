@@ -626,6 +626,7 @@ export default function TruthOrDarePage() {
       <div className="absolute bottom-10 right-10 h-40 w-40 rounded-full bg-cyan-200/30 blur-3xl" />
 
       {room && <HostMenu roomId={room.id} game="truth_or_dare" isHost={isHost} />}
+      <style>{`@keyframes truthCardEnter {0%{opacity:0;transform:perspective(800px) rotateY(-65deg) scale(.94)}65%{opacity:1;transform:perspective(800px) rotateY(6deg) scale(1.01)}100%{transform:perspective(800px) rotateY(0) scale(1)}} .truth-card-enter{animation:truthCardEnter 550ms ease-out both}@media(prefers-reduced-motion:reduce){.truth-card-enter{animation:none}}`}</style>
       <section className="relative z-10 w-full max-w-2xl rounded-[36px] border border-white/50 dark:border-slate-600/60 bg-white/70 dark:bg-slate-900/85 p-7 text-center shadow-2xl backdrop-blur-md md:p-10">
         <div className="flex items-center justify-center gap-2">
           <Sparkles className="h-7 w-7 text-violet-500" />
@@ -744,7 +745,7 @@ export default function TruthOrDarePage() {
                 </div>
 
                 <div
-                  className={`mt-6 rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-lg transition-all duration-500 ${
+                  className={`mt-6 rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-lg transition-all duration-500 ${showQuestionCard ? "truth-card-enter " : ""}${
                     showQuestionCard
                       ? "scale-100 opacity-100"
                       : "scale-90 opacity-0"
@@ -770,7 +771,7 @@ export default function TruthOrDarePage() {
                 </div>
 
                 <div
-                  className={`mt-6 rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-lg transition-all duration-500 ${
+                  className={`mt-6 rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-lg transition-all duration-500 ${showQuestionCard ? "truth-card-enter " : ""}${
                     showQuestionCard
                       ? "scale-100 opacity-100"
                       : "scale-90 opacity-0"
@@ -795,7 +796,7 @@ export default function TruthOrDarePage() {
                   <HelpCircle className="h-5 w-5" /> Everyone
                 </div>
                 <div
-                  className={`mt-6 rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-lg transition-all duration-500 ${
+                  className={`mt-6 rounded-3xl bg-white dark:bg-slate-800 p-7 shadow-lg transition-all duration-500 ${showQuestionCard ? "truth-card-enter " : ""}${
                     showQuestionCard
                       ? "scale-100 opacity-100"
                       : "scale-90 opacity-0"
