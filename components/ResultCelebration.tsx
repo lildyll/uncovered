@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Users, Scale, PawPrint } from "lucide-react";
 import CelebrationBurst from "@/components/CelebrationBurst";
 
 type Props = {
@@ -32,6 +31,14 @@ export default function ResultCelebration({
       : loneWolf
         ? "LONE WOLF"
         : "";
+
+  const ResultIcon = unanimous
+    ? Users
+    : split
+      ? Scale
+      : loneWolf
+        ? PawPrint
+        : Sparkles;
 
   useEffect(() => {
     if (!roundKey || (!uncovered && !label)) return;
@@ -269,9 +276,9 @@ export default function ResultCelebration({
             )}
 
           <span className="relative z-10 inline-flex items-center justify-center gap-2">
-            <Sparkles className="h-5 w-5 shrink-0" />
+            <ResultIcon className="h-6 w-6 shrink-0" />
             {label}
-            <Sparkles className="h-5 w-5 shrink-0" />
+            <ResultIcon className="h-6 w-6 shrink-0" />
           </span>
         </div>
       )}
