@@ -34,6 +34,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `try { if (localStorage.getItem('uncovered-theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}` }} />
         <ThemeToggle />
         {children}
+        <Analytics />
       </body>
     </html>
   );
