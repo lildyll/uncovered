@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { uploadPlayerAvatar } from "@/lib/avatar-upload";
 import { useRouter } from "next/navigation";
-import { Gamepad2, User, ArrowRight, Camera, X } from "lucide-react";
+import Link from "next/link";
+import { Gamepad2, User, ArrowRight, Camera, X, ChartNoAxesColumnIncreasing } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { ensureAnonymousUser } from "@/lib/auth";
 import UncoveredLogo from "@/components/UncoveredLogo";
@@ -265,6 +266,7 @@ export default function Home() {
       <div className="absolute bottom-10 right-10 w-40 h-40 bg-cyan-200/30 rounded-full blur-3xl" />
       <div className="absolute top-1/3 right-0 w-24 h-24 bg-white/20 dark:bg-white/10 rounded-full blur-2xl" />
 
+      <Link href="/log" aria-label="View Uncovered statistics" title="Game statistics" className="fixed bottom-4 left-4 z-50 rounded-full border border-white/30 bg-white/80 p-3 text-slate-700 shadow-lg backdrop-blur-md transition hover:scale-105 dark:bg-slate-800 dark:text-sky-300"><ChartNoAxesColumnIncreasing className="h-5 w-5" /></Link>
       <div className="mt-0 mb-8 relative z-10">
         <UncoveredLogo />
       </div>
