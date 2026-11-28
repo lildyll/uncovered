@@ -36,10 +36,15 @@ export type Player = {
 export type Room = {
   id: string;
   code: string;
-  selected_game: "spicy" | "party" | "truth_or_dare" | "fool_me_once" | null;
+  selected_game: "spicy" | "party" | "truth_or_dare" | "fool_me_once" | "paranoia" | null;
   game_started: boolean;
   game_phase: GamePhase;
   current_round: number;
+  game_total_rounds?: number;
+  game_uncovered_frequency?: "low" | "normal" | "chaos";
+  game_anonymous_only?: boolean;
+  trophy_phase?: boolean;
+  game_trophies?: GameTrophy[];
   current_question: string | null;
   current_question_type: QuestionType | null;
   option_one: string | null;
@@ -158,3 +163,5 @@ export type ParanoiaQuestion = {
   target_player_id: string | null;
   created_at?: string;
 };
+
+export type GameTrophy = { id: string; title: string; playerId: string; description: string };

@@ -28,6 +28,7 @@ import {
 import { createFoolMeOnceGame } from "@/lib/fool-me-once";
 import { createParanoiaGame } from "@/lib/paranoia";
 import type { Player } from "@/lib/types";
+import { makeUncoveredRounds, type UncoveredFrequency } from "@/lib/game-settings";
 import UncoveredLogo from "@/components/UncoveredLogo";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
@@ -87,6 +88,9 @@ export default function HostPage() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [players, setPlayers] = useState<Player[]>([]);
   const avatarUrls = useRoomAvatarUrls(roomId, players);
+  const [totalRounds, setTotalRounds] = useState(20);
+  const [frequency, setFrequency] = useState<UncoveredFrequency>("normal");
+  const [anonymousOnly, setAnonymousOnly] = useState(false);
   const [selectedGame, setSelectedGame] = useState<AvailableGame>("spicy");
   const [error, setError] = useState("");
   const [isStarting, setIsStarting] = useState(false);
@@ -199,7 +203,7 @@ export default function HostPage() {
 
     try {
       if (selectedGame === "spicy") {
-        const uncoveredRounds = generateUncoveredRounds(SPICY_TOTAL_ROUNDS);
+        const uncoveredRounds = makeUncoveredRounds(totalRounds, frequency, anonymousOnly);
 
         const { error: resetError } = await supabase
           .from("rooms")
@@ -210,6 +214,11 @@ export default function HostPage() {
             used_spicy_question_ids: [],
             uncovered_rounds: uncoveredRounds,
             current_result_uncovered: false,
+            game_total_rounds: totalRounds,
+            game_uncovered_frequency: frequency,
+            game_anonymous_only: anonymousOnly,
+            trophy_phase: false,
+            game_trophies: [],
           })
           .eq("id", roomId);
 
@@ -218,8 +227,8 @@ export default function HostPage() {
       }
 
       if (selectedGame === "party") {
-        const uncoveredRounds = generateUncoveredRounds(PARTY_TOTAL_ROUNDS);
-        const partyTypeOrder = generatePartyTypeOrder(PARTY_TOTAL_ROUNDS);
+        const uncoveredRounds = makeUncoveredRounds(totalRounds, frequency, anonymousOnly);
+        const partyTypeOrder = generatePartyTypeOrder(totalRounds);
 
         const { error: resetError } = await supabase
           .from("rooms")
@@ -231,6 +240,11 @@ export default function HostPage() {
             uncovered_rounds: uncoveredRounds,
             party_question_type_order: partyTypeOrder,
             current_result_uncovered: false,
+            game_total_rounds: totalRounds,
+            game_uncovered_frequency: frequency,
+            game_anonymous_only: anonymousOnly,
+            trophy_phase: false,
+            game_trophies: [],
           })
           .eq("id", roomId);
 
@@ -440,6 +454,23 @@ export default function HostPage() {
                 );
               })}
             </div>
+
+            {(selectedGame === "spicy" || selectedGame === "party") && (
+              <div className="mt-5 rounded-3xl bg-white p-5 shadow-md dark:bg-slate-800">
+                <h3 className="mb-4 text-lg font-black text-slate-800 dark:text-slate-100">Game Settings</h3>
+                <label className="block text-sm font-bold text-slate-600 dark:text-slate-300">Rounds</label>
+                <div className="mt-2 grid grid-cols-4 gap-2">
+                  {[5, 10, 15, 20].map(n => <button key={n} type="button" aria-pressed={totalRounds === n} onClick={() => setTotalRounds(n)} className={`rounded-xl py-3 font-black ${totalRounds === n ? "bg-blue-500 text-white" : "bg-sky-100 text-blue-700 dark:bg-slate-700 dark:text-slate-200"}`}>{n}</button>)}
+                </div>
+                <label htmlFor="uncovered-frequency" className="mt-5 block text-sm font-bold text-slate-600 dark:text-slate-300">Uncovered frequency</label>
+                <select id="uncovered-frequency" value={frequency} disabled={anonymousOnly} onChange={e => setFrequency(e.target.value as UncoveredFrequency)} className="mt-2 w-full rounded-xl bg-sky-100 p-3 font-bold text-slate-800 disabled:opacity-50 dark:bg-slate-700 dark:text-slate-100">
+                  <option value="low">Low (10%)</option><option value="normal">Normal (25%)</option><option value="chaos">Chaos (60%)</option>
+                </select>
+                <label className="mt-5 flex items-center gap-3 font-bold text-slate-700 dark:text-slate-200">
+                  <input type="checkbox" checked={anonymousOnly} onChange={e => setAnonymousOnly(e.target.checked)} className="h-5 w-5 accent-blue-500" /> Anonymous only
+                </label>
+              </div>
+            )}
 
             <button
               type="button"

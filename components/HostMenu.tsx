@@ -41,6 +41,8 @@ export default function HostMenu({ roomId, game, isHost }: {
           party_question_type_order: [],
           uncovered_rounds: [],
           current_result_uncovered: false,
+          trophy_phase: false,
+          game_trophies: [],
           truth_or_dare_stage: "truth",
           truth_or_dare_item_order: [],
           truth_or_dare_current_index: 0,

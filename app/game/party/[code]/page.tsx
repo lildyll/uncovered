@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
+import TrophyStack from "@/components/TrophyStack";
+import { calculateGameTrophies } from "@/lib/game-trophies";
 import ResultCelebration from "@/components/ResultCelebration";
 import CelebrationBurst from "@/components/CelebrationBurst";
 import { Crown } from "lucide-react";
@@ -792,6 +794,7 @@ export default function PartyGamePage() {
     await checkIfEveryoneAnswered();
   }
 
+  const totalRounds = room?.game_total_rounds || 20;
   async function nextQuestion() {
     if (
       !room ||
@@ -805,7 +808,16 @@ export default function PartyGamePage() {
     setError("");
 
     try {
-      if (room.current_round >= PARTY_TOTAL_ROUNDS) {
+      if (room.current_round >= totalRounds && !room.trophy_phase) {
+        const calculated = await calculateGameTrophies(room, players, "party");
+        const { error: trophyError } = await supabase.from("rooms").update({
+          trophy_phase: true,
+          game_trophies: calculated,
+        }).eq("id", room.id).eq("game_phase", "results").eq("trophy_phase", false);
+        if (trophyError) throw new Error(trophyError.message);
+        return;
+      }
+      if (room.current_round >= totalRounds) {
         // Remove old answers so they cannot interfere
         // with another game played in this same room.
 
@@ -824,6 +836,8 @@ export default function PartyGamePage() {
             party_question_type_order: [],
             uncovered_rounds: [],
             current_result_uncovered: false,
+            trophy_phase: false,
+            game_trophies: [],
           })
           .eq("id", room.id);
 
@@ -935,7 +949,7 @@ export default function PartyGamePage() {
           "finished" && (
           <p className="mt-3 font-bold text-slate-500 dark:text-slate-400">
             Round {room.current_round} /{" "}
-            {PARTY_TOTAL_ROUNDS}
+            {totalRounds}
           </p>
         )}
 
@@ -1108,8 +1122,13 @@ export default function PartyGamePage() {
           </>
         )}
 
+        {room.game_phase === "results" && room.trophy_phase && (
+          <TrophyStack trophies={room.game_trophies || []} players={players} avatarUrls={avatarUrls}
+            isHost={isHost} busy={isAdvancing} onReturn={nextQuestion} />
+        )}
+
         {room.game_phase ===
-          "results" && (
+          "results" && !room.trophy_phase && (
           <>
             <ResultCelebration
               roundKey={`${room.id}:${room.current_round}:${room.current_question}`}
@@ -1379,7 +1398,7 @@ export default function PartyGamePage() {
                     ? "Revealing..."
                     : isAdvancing
                       ? "Loading..."
-                      : room.current_round >= PARTY_TOTAL_ROUNDS
+                      : room.current_round >= totalRounds
                         ? "Finish Party Mode"
                         : "Next Question"}
                   <ArrowRight className="h-6 w-6" />
@@ -1403,7 +1422,7 @@ export default function PartyGamePage() {
 
             <p className="mt-4 text-lg font-bold text-sky-700 dark:text-sky-300">
               You completed all{" "}
-              {PARTY_TOTAL_ROUNDS} Party
+              {totalRounds} Party
               Mode rounds.
             </p>
 

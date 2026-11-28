@@ -9,6 +9,8 @@ import {
 import { ArrowRight, Flame, Home } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import HostMenu from "@/components/HostMenu";
+import TrophyStack from "@/components/TrophyStack";
+import { calculateGameTrophies } from "@/lib/game-trophies";
 import ResultCelebration from "@/components/ResultCelebration";
 import PlayerAvatar from "@/components/PlayerAvatar";
 import { useRoomAvatarUrls } from "@/lib/use-room-avatar-urls";
@@ -420,6 +422,7 @@ export default function SpicyGamePage() {
     await checkIfEveryoneAnswered();
   }
 
+  const totalRounds = room?.game_total_rounds || 20;
   async function nextQuestion() {
     if (!room || !isHost || isAdvancing) return;
 
@@ -427,7 +430,16 @@ export default function SpicyGamePage() {
     setError("");
 
     try {
-      if (room.current_round >= SPICY_TOTAL_ROUNDS) {
+      if (room.current_round >= totalRounds && !room.trophy_phase) {
+        const calculated = await calculateGameTrophies(room, players, "spicy");
+        const { error: trophyError } = await supabase.from("rooms").update({
+          trophy_phase: true,
+          game_trophies: calculated,
+        }).eq("id", room.id).eq("game_phase", "results").eq("trophy_phase", false);
+        if (trophyError) throw new Error(trophyError.message);
+        return;
+      }
+      if (room.current_round >= totalRounds) {
 
         const { error: lobbyError } = await supabase
           .from("rooms")
@@ -443,6 +455,8 @@ export default function SpicyGamePage() {
             used_spicy_question_ids: [],
             uncovered_rounds: [],
             current_result_uncovered: false,
+            trophy_phase: false,
+            game_trophies: [],
           })
           .eq("id", room.id);
 
@@ -515,7 +529,7 @@ export default function SpicyGamePage() {
 
         {room.game_phase !== "finished" && (
           <p className="mt-3 font-bold text-slate-500 dark:text-slate-400">
-            Round {room.current_round} / {SPICY_TOTAL_ROUNDS}
+            Round {room.current_round} / {totalRounds}
           </p>
         )}
 
@@ -576,7 +590,12 @@ export default function SpicyGamePage() {
           </>
         )}
 
-        {room.game_phase === "results" && (
+        {room.game_phase === "results" && room.trophy_phase && (
+          <TrophyStack trophies={room.game_trophies || []} players={players} avatarUrls={avatarUrls}
+            isHost={isHost} busy={isAdvancing} onReturn={nextQuestion} />
+        )}
+
+        {room.game_phase === "results" && !room.trophy_phase && (
           <>
             <ResultCelebration
               roundKey={`${room.id}:${room.current_round}:${room.current_question}`}
@@ -664,7 +683,7 @@ export default function SpicyGamePage() {
                 <span className="flex items-center justify-center gap-3">
                   {isAdvancing
                     ? "Loading..."
-                    : room.current_round >= SPICY_TOTAL_ROUNDS
+                    : room.current_round >= totalRounds
                       ? "Finish Game"
                       : "Next Question"}
 
@@ -686,7 +705,7 @@ export default function SpicyGamePage() {
             </h1>
 
             <p className="mt-4 text-lg font-bold text-sky-700 dark:text-sky-300">
-              You completed all {SPICY_TOTAL_ROUNDS} rounds of Spicy.
+              You completed all {totalRounds} rounds of Spicy.
             </p>
 
             <button
